@@ -1,0 +1,288 @@
+################################ Load Libraries ################################
+library(tidyverse)
+
+################################ Load Proc Data ################################
+proc_data <- read_csv('input/CAS_PROC_20230201.csv')
+#321 vars
+
+retired <- c('R_PREOP_PSVR','R_PREOP_PSVL','R_PREOP_IMAGING_OTHER_RSTENO','R_PREOP_IMAGING_OTHER_LSTENO','R_PREOP_AMBUL','R_PRIOR_BYPASS','R_PRIOR_ANEURREP','R_PRIOR_PVI','R_PRIOR_VBEVENT','R_PRIOR_NONSPECEVENT','R_SECOND_STENOSIS_NONTRTED','R_PRIOR_IPSICAROTID','R_PRIOR_IPSISTENO','R_PRIOR_CONTRASTENO','R_PROCLOC','R_LESIONEXTENT','S_R_STENTDIA_CCA','S_R_STENTLEN_CCA','S_R_STENTDIA_BIFUR','R_TAPERED_BIFUR','S_R_STENTLEN_BIFUR','R_POSTOP_2B3A','R_POSTOP_TIA_R','R_POSTOP_TIA_L','R_POSTOP_STROKE_RMIN','R_POSTOP_STROKE_LMIN','R_POSTOP_STROKE_RMAJ','R_POSTOP_STROKE_LMAJ','R_DILSTENT_CCA','R_DILSTENT_BIFUR','R_CORTICAL_IPSILAT','R_CORTICAL_CONTRALAT','R_OCULAR_IPSILAT','R_OCULAR_CONTRALAT','R_HEPARIN')
+
+proc_data <- proc_data %>% #remove retired variables
+  select(-all_of(retired))
+#286 vars
+
+unused <- c('HTIN','HTCM','HEMO_L','PREOP_CREAT_UMOL','AGECAT')
+
+proc_data <- proc_data %>% #remove unused variables
+  select(-all_of(unused))
+#282 vars
+############################### Proc Data Types ################################
+logicalVars <- c('DEAD','ETHNICITY','PRIOR_TIASTROKE','PRIOR_TIA_NONE','PRIOR_TIA_RRET','PRIOR_TIA_LRET','PRIOR_TIA_RCORT','PRIOR_TIA_LCORT','PRIOR_TIA_VB','PRIOR_STROKE_NONE','PRIOR_STROKE_RRET','PRIOR_STROKE_LRET','PRIOR_STROKE_RCORT','PRIOR_STROKE_LCORT','PRIOR_STROKE_VB','HIGHRISK_MED_AGE','HIGHRISK_MED_CHF','HIGHRISK_MED_LVEF','HIGHRISK_MED_ANGINA','HIGHRISK_MED_CAD','HIGHRISK_MED_MI','HIGHRISK_MED_PULM','HIGHRISK_MED_CKD','HIGHRISK_MED_HEART','HIGHRISK_MED_SURG','HIGHRISK_ANATOM_CEA','HIGHRISK_ANATOM_OCC','HIGHRISK_ANATOM_PALSY','HIGHRISK_ANATOM_C2LES','HIGHRISK_ANATOM_CLAVLES','COVID_HISTORY','HIGHRISK_ANATOM_RAD','HIGHRISK_ANATOM_SURG','HIGHRISK_ANATOM_STOMA','HIGHRISK_ANATOM_IMMOB','HIGHRISK_ANATOM_STENO','PREOP_IMAGING_DUP','PREOP_IMAGING_CT','PREOP_IMAGING_MRI','PREOP_IMAGING_ANGIO','PROPHYLACTIC','PROTAMINE','INHIBITOR','SECOND_STENOSIS_NONTRTED','PROTECTDEV_PREDILATE_1','PROTECTDEV_PREDILATE_2','POSTOP_NEURO','POSTOP_TIA_NONE','POSTOP_TIA_RRET','POSTOP_TIA_LRET','POSTOP_TIA_RCORT','POSTOP_TIA_LCORT','POSTOP_TIA_VB','POSTOP_STROKE_NONE','POSTOP_STROKE_RRET','POSTOP_STROKE_LRET','POSTOP_STROKE_RCORT','POSTOP_STROKE_LCORT','POSTOP_STROKE_VB','POSTOP_COMPLICATIONS','POSTOP_DYSRHYTHMIA','POSTOP_CHF','POSTOP_MEDCHANGE')
+
+charVars <- c('PATIENTID','S_PATIENT_ZIPCODE_5','PRIMPROCID','REGIONID','S_LEGAL_CONTRACT_ENTITY_ID','CENTERID','PHYSICIANID','S_PATIENT_ZIPCODE','S_CENTER_ZIPCODE','S_CENTER_STATE')
+
+numVars <- c('RUCA1','RUCA2','ADI_NATRANK_MEDIAN','PROC_SURVIVALDAYS','SURGYEAR','SURGMONTH','AGE','S_TRAINEE_1','S_TRAINEE_2','S_OTHER_ASST_1_SPECIFY_OTHER','S_OTHER_ASST_2_SPECIFY_OTHER','TOTAL_LOS','POSTOP_LOS','WTLB','WTKG','QUIT_SMKG_DAYS','HEMO','PREOP_CREAT','PRI_TIA_RETINAL_R_DAYS','PRI_TIA_RETINAL_L_DAYS','PRI_TIA_CORTICAL_R_DAYS','PRI_TIA_CORTICAL_L_DAYS','PRI_TIA_VERTEBROBASILAR_DAYS','R_PRIOR_TIA_DAYS','PRI_STRK_RETINAL_R_DAYS','PRI_STRK_RETINAL_L_DAYS','PRI_STRK_CORTICAL_R_DAYS','PRI_STRK_CORTICAL_L_DAYS','PRI_STRK_VERTEBROBASILAR_DAYS','R_PRIOR_STROKE_DAYS','PRIOR_R_CEA_DAYS','PRIOR_L_CEA_DAYS','PRIOR_R_CAS_DAYS','PRIOR_L_CAS_DAYS','CCA_PSV_R','ICA_PSV_R','CCA_PSV_L','ICA_PSV_L','CCA_EDV_R','ICA_EDV_R','CCA_EDV_L','ICA_EDV_L','COVID_VACCINE_DAYS','COVID_BOOSTER_DAYS','CONTRAST','FLUOROTIME','S_AIR_KERMA','S_DOSEAREA','TOTALPROCTIME','SECOND_STENO_SEV','LESION_LEN_1','LESION_STENO_1','FLOWREV_TIME_1','BALLDIA_NOSTENT_1','STENT_TYPE_CAS_S1_1','STENT_TYPE_CAS_S2_1','S_STENT_DIA_CAS_S1_1','S_STENT_DIA_CAS_S2_1','S_STENT_LENGTH_CAS_S1_1','S_STENT_LENGTH_CAS_S2_1','S_STENT1_BALLDIA_1','S_STENT2_BALLDIA_1','LESION_LEN_2','LESION_STENO_2','FLOWREV_TIME_2','BALLDIA_NOSTENT_2','STENT_TYPE_CAS_S1_2','STENT_TYPE_CAS_S2_2','S_STENT_DIA_CAS_S1_2','S_STENT_DIA_CAS_S2_2','S_STENT_LENGTH_CAS_S1_2','S_STENT_LENGTH_CAS_S2_2','S_STENT1_BALLDIA_2','S_STENT2_BALLDIA_2')
+
+#'y/n??','S_SUBMIT_WO_VALIDATION'
+             
+factorVars <- c('SURGWEEKDAY','S_TRAINEES','S_TRAINEE_1_LEVEL','S_TRAINEE_2_LEVEL','S_TRAINEE_1_ROLE','S_TRAINEE_2_ROLE','S_OTHER_ASSISTANTS','S_OTHER_ASSISTANT_TYPE_1','S_OTHER_ASSISTANT_TYPE_2','GENDER','RACE','PRIMARYINSURER','TRANSFER','LIVINGSTATUS','ASACLASS','PREOP_FUNCSTATUS','PRIOR_CAD','PRIOR_CHF','PREOP_DYSRHYTHMIA','COPD','PREOP_DIABETES','PREOP_DIALYSIS','HTN','PREOP_SMOKING','STRESS','PRIOR_CABG','PRIOR_PCI','PRIOR_CEACAS','PRIOR_BYPPVIENDAR','PRIOR_MAJAMP','PRIOR_CEA','PRIOR_CAS','PREOP_ASA','PREOP_P2Y','PREOP_STATIN','PREOP_ANTICOAG','PREOP_ACE','PREOP_BETABLOCKER','PREOP_RANKIN','HIGHRISK','COVID_STATUS','COVID_SYMPTOMS','COVID_DELAY','COVID_DELAY_IMPACT','REFUSEDFORSURG','S_PREOP_IMAGING','PREOP_IMAGING_DUP_LOC','PREOP_IMAGING_DUP_RSTENO','PREOP_IMAGING_DUP_LSTENO','MRA_STENOSIS_R','CTA_STENOSIS_R','ARTERIOGRAM_STENOSIS_R','MRA_STENOSIS_L','CTA_STENOSIS_L','ARTERIOGRAM_STENOSIS_L','PRIOR_STROKEIPSI','CALCIFICATION','ARCHATHERO','COVID_VACCINATION','COVID_BOOSTER','URGENCY','ASACLASS','ANESTHESIA','INDICATION','ARCHTYPE','BOVARCH','APPROACH','SETTING','MEDLOAD','PROC_ANTICOAG','BRADYREQTX','NUM_LESIONS_TRT','LESION_TYPE_1','LESION_SIDE_1','LESION_LOC_1','ICA_DISTALTORT_1','PROTECTDEV_1','PROTECTDEV_TYPE_1','EPD_TYPE_1','FLOWREV_TYPE_1','TECHFAIL_1','NUMSTENTS_1','S_STENT1_POSTDILATE_1','S_STENT2_POSTDILATE_1','LESION_TYPE_2','LESION_SIDE_2','LESION_LOC_2','ICA_DISTALTORT_2','PROTECTDEV_2','PROTECTDEV_TYPE_2','STENTTYPE_CCA','EPD_TYPE_2','FLOWREV_TYPE_2','TECHFAIL_2','NUMSTENTS_2','STENTTYPE_BIFUR','S_STENT1_POSTDILATE_2','S_STENT2_POSTDILATE_2','NEUROCHANGE','SUSPECT_ETIOLOGY','COMPANGIO','POSTOP_CNI','POSTOP_TIA_TIME','POSTOP_STROKE_TIME','POSTOP_STROKE_TRT','POSTOP_WORSTRANKIN','DC_RANKIN','POSTOP_IVMEDS','POSTOP_REPERF','POSTOP_MI','POSTOP_ACCSITECOMP','POSTOP_HEMABLEED','POSTOP_STENO','POSTOP_INFECT','POSTOP_PSEUDOANEUR','POSTOP_AVFISTULA','MORTCAUSE','DC_ASA','DC_P2Y','DC_STATIN','DC_ANTICOAG','DC_ACE','DC_BETABLOCKER','DC_STATUS','S_PREDILATE_LESION_1','S_PREDILATE_LESION_2','LTF_CALC','S_SSN_INDICATOR','IDE_OTHER')
+
+factorVars_conv <- c('SURGWEEKDAY','GENDER','RACE','DC_STATUS','PRIMARYINSURER','TRANSFER','PREOP_SMOKING','LIVINGSTATUS','PREOP_FUNCSTATUS','PRIOR_CAD','PRIOR_CHF','PREOP_DYSRHYTHMIA','COPD','PREOP_DIABETES','PREOP_DIALYSIS','HTN','STRESS','PRIOR_CABG','PRIOR_PCI','ASACLASS','PRIOR_CEACAS','PRIOR_BYPPVIENDAR','PRIOR_MAJAMP','PRIOR_CEA','PRIOR_CAS','PREOP_ASA','PREOP_P2Y','PREOP_STATIN','PREOP_ANTICOAG','PREOP_ACE','PREOP_BETABLOCKER','PREOP_RANKIN','HIGHRISK','REFUSEDFORSURG','S_PREOP_IMAGING','PREOP_IMAGING_DUP_LOC','PREOP_IMAGING_DUP_RSTENO','PREOP_IMAGING_DUP_LSTENO','MRA_STENOSIS_R','CTA_STENOSIS_R','ARTERIOGRAM_STENOSIS_R','MRA_STENOSIS_L','CTA_STENOSIS_L','ARTERIOGRAM_STENOSIS_L','PRIOR_STROKEIPSI','CALCIFICATION','ARCHATHERO','COVID_VACCINATION','COVID_BOOSTER','URGENCY','ASACLASS','ANESTHESIA','INDICATION','ARCHTYPE','BOVARCH','APPROACH','SETTING','MEDLOAD','PROC_ANTICOAG','BRADYREQTX','NUM_LESIONS_TRT','LESION_TYPE_1','LESION_SIDE_1','LESION_LOC_1','ICA_DISTALTORT_1','PROTECTDEV_1','PROTECTDEV_TYPE_1','EPD_TYPE_1','FLOWREV_TYPE_1','TECHFAIL_1','NUMSTENTS_1','S_STENT1_POSTDILATE_1','S_STENT2_POSTDILATE_1','LESION_TYPE_2','LESION_SIDE_2','LESION_LOC_2','ICA_DISTALTORT_2','PROTECTDEV_2','PROTECTDEV_TYPE_2','STENTTYPE_CCA','EPD_TYPE_2','FLOWREV_TYPE_2','TECHFAIL_2','NUMSTENTS_2','STENTTYPE_BIFUR','S_STENT1_POSTDILATE_2','S_STENT2_POSTDILATE_2','NEUROCHANGE','SUSPECT_ETIOLOGY','COMPANGIO','POSTOP_CNI','POSTOP_TIA_TIME','POSTOP_STROKE_TIME','POSTOP_STROKE_TRT','POSTOP_WORSTRANKIN','DC_RANKIN','POSTOP_IVMEDS','POSTOP_REPERF','POSTOP_MI','POSTOP_ACCSITECOMP','POSTOP_HEMABLEED','POSTOP_STENO','POSTOP_INFECT','POSTOP_PSEUDOANEUR','POSTOP_AVFISTULA','MORTCAUSE','DC_ASA','DC_P2Y','DC_STATIN','DC_ANTICOAG','DC_ACE','DC_BETABLOCKER','DC_STATUS','S_PREDILATE_LESION_1','S_PREDILATE_LESION_2','LTF_CALC','S_SSN_INDICATOR','IDE_OTHER')
+
+#Correct Date formats
+proc_data <- proc_data %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+proc_data <- proc_data %>%
+  mutate(across(contains('_DATE'), ~mdy(.)))
+
+#apply data types
+proc_data[numVars] <- lapply(proc_data[numVars], as.numeric)
+proc_data[charVars] <- lapply(proc_data[charVars], as.character)
+proc_data[logicalVars] <- lapply(proc_data[logicalVars], as.logical)
+proc_data[factorVars] <- lapply(proc_data[factorVars], as.factor)
+
+############################# Recode Proc factors ##############################
+proc_data$factor_race <- factor(proc_data$RACE, labels = c("American Indian or Alaskan Native","Asian","Black or African American","Native Hawaiian or other Pacific Islander","White","More than 1 race","Unknown / Other"))
+
+proc_data$factor_dc_status <- factor(proc_data$DC_STATUS, labels = c("Home","Rehab unit","Nursing home","Dead","Other hospital","Homeless"))
+
+proc_data$factor_surgweekday <- factor(proc_data$SURGWEEKDAY, labels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+proc_data$factor_gender <- factor(proc_data$GENDER, labels = c("Male", "Female", "Other"))
+
+proc_data$factor_primaryinsurer <- factor(proc_data$PRIMARYINSURER, labels = c("Medicare", "Medicaid", "Commercial", "Military/VA", "Non US insurance", "Self pay", "Medicare Advantage"))
+
+proc_data$factor_transfer <- factor(proc_data$TRANSFER, labels = c("No", "Hospital", "Rehab unit"))
+
+proc_data$factor_preop_smoking <- factor(proc_data$PREOP_SMOKING, labels = c("Never", "Prior", "Current"))
+
+proc_data$factor_htn <- factor(proc_data$HTN, labels = c("No", "Yes (>=140/90 or history - retired since 11/15/2016)", "Yes, controlled [added on 04/13/2020]", "Yes, uncontrolled [added on 04/13/2020]"))
+
+proc_data$factor_preop_diabetes <- factor(proc_data$PREOP_DIABETES, labels = c("None", "Diet", "Non-insulin meds", "Insulin only","Insulin + Non-insulin meds","Insulin with or without Non-insulin Meds (retired since 12/19/2017)"))
+
+proc_data$factor_prior_cad <- factor(proc_data$PRIOR_CAD, labels = c("None","Hx MI but no sx","Stable angina","Unstable angina or MI < 6 mos (retired since 09/12/2012)","MI < 6 mos","Unstable angina","CAD, asymptomatic", "None or asymptomatic (retired since 12/19/2017)"))  
+
+proc_data$factor_prior_cabg <- factor(proc_data$PRIOR_CABG, labels = c("None", "<5yr ago", ">= 5yrs ago"))
+
+proc_data$factor_prior_pci <- factor(proc_data$PRIOR_PCI, labels = c("None", "<5yr ago", ">= 5yrs ago"))
+
+proc_data$factor_prior_chf <- factor(proc_data$PRIOR_CHF, labels = c("None", "Asymptomatic, hx only", "Mild" ,"Moderate CHF", "Severe CHF"))
+
+proc_data$factor_copd <- factor(proc_data$COPD, labels = c("No", "Not treated", "On meds", "On home oxygen"))
+
+proc_data$factor_preop_dialysis <- factor(proc_data$PREOP_DIALYSIS, labels = c("No","Functioning Transplant","On Dialysis (retired since 11/15/2016)","Yes, Hemodialysis","Yes, Peritoneal Dialysis"))
+
+proc_data$factor_stress <- factor(proc_data$STRESS, labels = c("Not done", "Normal", "Ischemia", "MI", "Ischemia and MI"))
+
+proc_data$factor_livingstatus <- factor(proc_data$LIVINGSTATUS, labels = c("Home", "Nursing home", "Homeless"))
+
+proc_data$factor_asaclass <- factor(proc_data$ASACLASS, labels = c("healthy patient", "mild systemic disease", "severe systemic disease", "severe systemic disease that is a constant threat to life", "moribund - not expected to survive without the operation"))
+
+proc_data$factor_preop_asa <- factor(proc_data$PREOP_ASA, labels = c("No", "Yes", "No, for medical reason"," Non-compliant"))
+
+proc_data$factor_prior_majoramp <- factor(proc_data$PRIOR_MAJAMP, labels = c("No","Yes (retired since 09/12/2012)","BK/thru knee","AK or higher","Toe(s)", "Transmet/midfoot","No major but minor unknown (retired since 12/19/2017)"))
+
+proc_data$factor_preop_p2y <- factor(proc_data$PREOP_P2Y, labels = c("None", "Clopidogrel", "Prasugrel", "Ticlopidine (retired since 11/15/2016)", "Ticagrelor", "Other", "No, for medical reason", "Non-compliant","PAR1 inhibitor","Aggrenox"))
+
+proc_data$factor_preop_statin <- factor(proc_data$PREOP_STATIN, labels = c("No", "Yes","No, for medical reason","Non-compliant"))
+
+proc_data$factor_preop_betablocker <- factor(proc_data$PREOP_BETABLOCKER, labels = c("No","Pre-op 1-30 days","Chronic > 30 days","No, for medical reason","Op day only","Non-compliant"))
+
+proc_data$factor_preop_ace <- factor(proc_data$PREOP_ACE, labels = c("No","Yes","No, for medical reason","Non-compliant"))
+
+proc_data$factor_preop_anticoag <- factor(proc_data$PREOP_ANTICOAG, labels = c("None","Warfarin (retired since 08/31/2016)","Dabigatran (Pradaxa)","Rivaroxaban (Xarelto)","Other","No, for Medical Reason","Non-compliant (retired since 12/15/2014)","Vitamin K Antagonist","Apixaban (Eliquis)","Edoxaban (Savaysa)"))
+
+proc_data$factor_anesthesia <- factor(proc_data$ANESTHESIA, labels = c("Local","General","Regional","Local/regional converted to general","General or convert to general (retired since 12/19/2017)","Local or regional (retired since 12/19/2017)"))
+
+proc_data$factor_indication <- factor(proc_data$INDICATION, labels = c("Asymptomatic Stenosis","Symptomatic stenosis","Part of intracranial treatment"))
+
+proc_data$factor_archtype <- factor(proc_data$ARCHTYPE, labels = c("I","II","III","Not imaged/Unknown"))
+
+proc_data$factor_bovarch <- factor(proc_data$BOVARCH, labels = c("No","Yes","Not imaged/Unknown"))
+
+proc_data$factor_approach <- factor(proc_data$APPROACH, labels = c("Femoral","Trans-Carotid (retired since 11/15/2016)","Brachial","Carotid percutaneous","Carotid open","Radial","Other"))
+
+proc_data$factor_setting <- factor(proc_data$SETTING, labels = c("Hospital outpatient","Hospital inpatient","Ambulatory center","Office"))
+
+proc_data$factor_medload <- factor(proc_data$MEDLOAD, labels = c("None","ASA or P2YI2 antagonist","Statin","Both"))
+
+proc_data$factor_proc_anticoag <- factor(proc_data$PROC_ANTICOAG, labels = c("None","Heparin","Bivalirudin","Argatroban","Other"))
+
+proc_data$factor_bradyreqtx <- factor(proc_data$BRADYREQTX, labels = c("No","Yes (retired since 11/15/2016)","Yes, medication","Yes, temporary pacing","Yes, permanent pacemaker"))
+
+proc_data$factor_lesion_type_1 <- factor(proc_data$LESION_TYPE_1, labels = c("Atherosclerosis","Re-Stenosis of CEA","Re-stenosis of stent","Re-stenosis graft","Dissection","Trauma","FMD","Other","Re-Stenosis unspecified (retired since 12/19/2017)"))
+
+proc_data$factor_lesion_side_1 <- factor(proc_data$LESION_SIDE_1, labels = c("Right","Left"))
+
+proc_data$factor_lesion_loc_1 <- factor(proc_data$LESION_LOC_1, labels = c("Bifurcation","CCA","ICA","ECA","Bifurcation or ICA (retired since 12/19/2017)"))
+
+proc_data$factor_ica_distaltort_1 <- factor(proc_data$ICA_DISTALTORT_1, labels = c("None/mild","Moderate","Severe"))
+
+proc_data$factor_protectdev_1 <- factor(proc_data$PROTECTDEV_1, labels = c("No","Yes, successful","Yes, unable to insert","Yes, other failure","Yes, failure unspecified (retired since 12/19/2017)"))
+
+proc_data$factor_protectdev_type_1 <- factor(proc_data$PROTECTDEV_TYPE_1, labels = c("Distal embolic protection device","Flow reversal"))
+
+proc_data$factor_techfail_1 <- factor(proc_data$TECHFAIL_1, labels = c("No","Yes, unable to access CCA","Yes, unable to cross lesion","Yes, unable to deploy stent as intended","Yes, other (retired since 12/19/2017)"))
+
+proc_data$factor_lesion_type_2 <- factor(proc_data$LESION_TYPE_2, labels = c("Atherosclerosis","Re-Stenosis of CEA","Re-stenosis of stent","Dissection","Trauma","FMD","Other"))
+
+proc_data$factor_lesion_side_2 <- factor(proc_data$LESION_SIDE_2, labels = c("Right","Left"))
+
+proc_data$factor_lesion_loc_2 <- factor(proc_data$LESION_LOC_2, labels = c("Bifurcation","CCA","ICA","ECA"))
+
+proc_data$factor_ica_distaltort_2 <- factor(proc_data$ICA_DISTALTORT_2, labels = c("None/mild","Moderate","Severe"))
+
+proc_data$factor_protectdev_2 <- factor(proc_data$PROTECTDEV_2, labels = c("No","Yes, successful","Yes, unable to insert","Yes, other failure","Yes, failure unspecified (retired since 12/19/2017)"))
+
+proc_data$factor_protectdev_type_2 <- factor(proc_data$PROTECTDEV_TYPE_2, labels = c("Distal embolic protection device","Flow reversal"))
+
+proc_data$factor_techfail_2 <- factor(proc_data$TECHFAIL_2, labels = c("No","Yes, unable to access CCA","Yes, unable to cross lesion","Yes, unable to deploy stent as intended"))
+
+proc_data$factor_neurochange <- factor(proc_data$NEUROCHANGE, labels = c("No","Yes (retired since 11/15/2016)","Decreased LOC","Seizure","Other"))
+
+proc_data$factor_suspect_etiology <- factor(proc_data$SUSPECT_ETIOLOGY, labels = c("Unknown","Distal emboli","Thrombosis","Flow reversal"))
+
+proc_data$factor_compangio <- factor(proc_data$COMPANGIO, labels = c("No","Yes, without new occlusions","Yes, branch occlusion seen","Yes, branch occlusion treated"))
+
+proc_data$factor_postop_cni <- factor(proc_data$POSTOP_CNI, labels = c("No","Yes, transient","Yes, present at DC")) 
+
+proc_data$factor_postop_tia_time <- factor(proc_data$POSTOP_TIA_TIME, labels = c("Procedure","< 6hrs post",">= 6hrs post","Unknown (retired since 12/19/2017)")) 
+
+proc_data$factor_postop_stroke_time <- factor(proc_data$POSTOP_STROKE_TIME, labels = c("Procedure","< 6hrs post",">= 6hrs post","Unknown (retired since 12/19/2017)"))
+
+proc_data$factor_postop_stroke_trt <- factor(proc_data$POSTOP_STROKE_TRT, labels = c("Medical","Systemic lysis","Intracranial catheter based"))
+
+proc_data$factor_postop_ivmeds <- factor(proc_data$POSTOP_IVMEDS, labels = c("No","Hypotension","Hypertension","Both","Hypotension but hypertension unknown (retired since 12/19/2017)"))
+
+proc_data$factor_postop_reperf <- factor(proc_data$POSTOP_REPERF, labels = c("None","Seizure or hemorrhage (retired since 11/15/2016)","Headache (retro-ocular/ipsilateral)","Seizure","Hemorrhage"," None or headache (retired since 12/19/2017)"))
+
+proc_data$factor_postop_mi <- factor(proc_data$POSTOP_MI, labels = c("No","Troponin only","EKG or clinical"))
+
+proc_data$factor_postop_accsitecomp <- factor(proc_data$POSTOP_ACCSITECOMP, labels = c("No","Minimal Hematoma/PA (retired since 11/15/2016)","Hematoma/PA Required Transfusion (retired since 11/15/2016)","Required Operation (retired since 11/15/2016)","Arterial Occlusion (retired since 11/15/2016)","Yes"))
+
+proc_data$factor_postop_hemableed <- factor(proc_data$POSTOP_HEMABLEED, labels = c("None","Medical Rx","Interventional Rx","Surgical Rx"))
+
+proc_data$factor_postop_steno <- factor(proc_data$POSTOP_STENO, labels = c("None","Medical Rx","Interventional Rx","Surgical Rx"))
+
+proc_data$factor_postop_infect <- factor(proc_data$POSTOP_INFECT, labels = c("None","Medical Rx","Interventional Rx"))
+
+proc_data$factor_postop_pseudoaneur <- factor(proc_data$POSTOP_PSEUDOANEUR, labels = c("No","Minor","Moderate (transfusion)","Moderate (thrombin injection)","Major (operation)"))
+
+proc_data$factor_dc_asa <- factor(proc_data$DC_ASA, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+proc_data$factor_dc_statin <- factor(proc_data$DC_STATIN, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+proc_data$factor_dc_p2y <- factor(proc_data$DC_P2Y, labels = c("None","Clopidogrel","Prasugrel","Ticlopidine (retired since 08/31/2016)","Ticagrelor","Other P2Y12 inhibitor","No, for medical reason","Non-compliant (retired since 12/15/2014)","PAR1 inhibitor","Aggrenox"))
+
+proc_data$factor_dc_betablocker <- factor(proc_data$DC_BETABLOCKER, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+proc_data$factor_dc_ace <- factor(proc_data$DC_ACE, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+proc_data$factor_dc_anticoag <- factor(proc_data$DC_ANTICOAG, labels = c("None","Warfarin (retired since 08/31/2016)","Dabigatran (Pradaxa)","Rivaroxaban (Xarelto)","Other","No, for Medical Reason","Non-compliant (retired since 12/15/2014)","Vitamin K Antagonist","Apixaban (Eliquis)","Edoxaban (Savaysa)"))
+
+proc_data$factor_mortcause <- factor(proc_data$MORTCAUSE, labels = c("Related to disease or treatment","Unrelated to disease or treatment","Unsure"))
+
+proc_data$factor_postop_avfistula <- factor(proc_data$POSTOP_AVFISTULA, labels = c("None","Medical Rx","Interventional Rx"))
+
+#proc_data$factor_varname <- factor(proc_data$VARNAME, labels = c("0","1","2","3","4"))
+
+proc_data$factor_ltf_calc <- factor(proc_data$LTF_CALC, labels = c("No","Yes","Exclude"))
+#353 variables
+
+############################### Final Proc Data ################################
+proc_data_final <- proc_data %>% 
+  select(-all_of(factorVars_conv))
+#237 variables
+
+#proc_data_final %>%
+#  write_rds('output/cas_proc_data.rds')
+
+#rm(list = ls())
+############################## Import LTF Data #################################
+ltf_data <- read_csv("input/CAS_LTF_20230201.csv")
+#125 vars
+
+ltf_data <- ltf_data %>%#remove retired variables
+  select(-all_of(c('LTF_R_TIA_R','LTF_R_TIA_L','LTF_R_STROKE_RMIN','LTF_R_STROKE_LMIN','LTF_R_STROKE_RMAJ','LTF_R_STROKE_LMAJ')))
+#119 vars
+################################ LTF Data Types ################################
+logicalVars_ltf <- c('DEAD','LTF_SMOKING','LTF_MEDCHANGE','LTF_TIASTROKE','LTF_TIA_NONE','LTF_TIA_RRET','LTF_TIA_LRET','LTF_TIA_RCORT','LTF_TIA_LCORT','LTF_TIA_VB','LTF_STROKE_NONE','LTF_STROKE_RRET','LTF_STROKE_LRET','LTF_STROKE_RCORT','LTF_STROKE_LCORT','LTF_STROKE_VB','LTF_IMAGING_NONE','LTF_IMAGING_DUP','LTF_IMAGING_CTA','LTF_IMAGING_MRA','LTF_IMAGING_ANGIO','LTF_REINT_0','LTF_REINT_1','LTF_REINT_2','D30_RETX_REOP_RELATED','D30_OTHERINF_CLABSI','D30_OTHERINF_SEPSIS','D30_OTHERINF_OTHER','D30_WOUNDCOMP_NECROSIS','D30_WOUNDCOMP_HEMATOMA','D30_WOUNDCOMP_SEROMA','D30_WOUNDCOMP_LYMPH_LEAK','D30_WOUNDCOMP_DEHISCENCE','D30_WOUNDCOMP_OTHER','D30_CARDCOMP_AMI','D30_CARDCOMP_HEART_FAILURE','D30_CARDCOMP_OTHER','D30_VASCCOMP_TREATED_ART_THROM','D30_VASCCOMP_DISTAL_ART_EMBO','D30_VASCCOMP_BLEEDING','D30_VASCCOMP_SWELLING_WO_DVT','D30_VASCCOMP_OTHER','D30_VTECOMP_DVT','D30_VTECOMP_PE','D30_VTECOMP_OTHER','D30_RESPCOMP_PNEUMONIA','D30_RESPCOMP_COPD','D30_RESPCOMP_OTHER','D30_CNSCOMP_TIA','D30_CNSCOMP_STROKE','D30_CNSCOMP_OTHER','D30_RENALCOMP_UTI','D30_RENALCOMP_UROSPESIS','D30_RENALCOMP_ACUTE_RENAL_FAIL','D30_RENALCOMP_OTHER','D30_GICOMP_INTESTINAL_ISCHEMIA','D30_GICOMP_NAUSEA_VOMITING','D30_GICOMP_DIARRHEA','D30_GICOMP_C_DIFF','D30_GICOMP_OTHER')
+
+numVars_ltf = c('PROC_SURVIVALDAYS','LTF_DAYS','LTF_PRI_TIA_RET_R_DAYS','LTF_PRI_TIA_RET_L_DAYS','LTF_PRI_TIA_CORT_R_DAYS','LTF_PRI_TIA_CORT_L_DAYS','LTF_PRI_TIA_VERT_DAYS','LTF_R_NEW_TIA_DAYS','LTF_PRI_STRK_RET_R_DAYS','LTF_PRI_STRK_RET_L_DAYS','LTF_PRI_STRK_CORT_R_DAYS','LTF_PRI_STRK_CORT_L_DAYS','LTF_PRI_STRK_VERT_DAYS','LTF_R_NEW_STROKE_DAYS','LTF_ICACCA_RATIO','LTF_MI_DAYS','LTF_IMAGING_DUP_DAYS','LTF_PSV','LTF_EDV','LTF_REINT_INTERV_DAYS','LTF_REINT_SURG_DAYS','D30_DAYS')
+
+charVars_ltf = c('PATIENTID','PRIMPROCID','CENTERID','LTF_ID','LTF_IMAGING_OTHER','LTF_S_MANDATORY_COMP','S_FWP_SUBMIT_WO_VALIDATION')
+
+factorVars_ltf = c('LTF_CONTACT','LTF_STATUS','LTF_MORTCAUSE','LTF_ASA','LTF_P2Y','LTF_STATIN','LTF_ANTICOAG','LTF_ACE','LTF_BETABLOCKER','LTF_FUNCSTATUS','LTF_REPERF','LTF_CNI','LTF_RANKIN','LTF_MI','LTF_IMAGING','LTF_IMAGING_DUP_STENO','LTF_IMAGING_OTHER_STENO','LTF_COVID_STATUS','IDE_OTHER','FWP_TIMEPOINT','D30_MORTCAUSE','COVID_STATUS_30D','D30_ADMIT_SINCE_DISC','D30_ADMISSION_LOC','D30_ADMISSION_REASON','D30_SSI')
+
+#Correct Date formats
+ltf_data <- ltf_data %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+ltf_data <- ltf_data %>%
+  mutate(across(contains('_DATE'), ~mdy(.)))
+
+#apply data types
+ltf_data[numVars_ltf] <- lapply(ltf_data[numVars_ltf], as.numeric)
+ltf_data[charVars_ltf] <- lapply(ltf_data[charVars_ltf], as.character)
+ltf_data[logicalVars_ltf] <- lapply(ltf_data[logicalVars_ltf], as.logical)
+ltf_data[factorVars_ltf] <- lapply(ltf_data[factorVars_ltf], as.factor)
+
+############################# Recode LTF factors ##############################
+ltf_data$factor_ltf_contact <- factor(ltf_data$LTF_CONTACT, labels = c('Face to face','Phone','No follow-up possible','Other source')) 
+
+ltf_data$factor_ltf_status <- factor(ltf_data$LTF_STATUS, labels = c("Home","Nursing home","Dead","Homeless")) 
+
+ltf_data$factor_ltfmortcause <- factor(ltf_data$LTF_MORTCAUSE, labels = c('Related to disease or treatment','Unrelated to disease or treatment','Unsure'))
+
+ltf_data$factor_ltf_asa <- factor(ltf_data$LTF_ASA, labels = c("No", "Yes", "No, for medical reason"," Non-compliant"))
+
+ltf_data$factor_ltf_p2y <- factor(ltf_data$LTF_P2Y, labels = c("None", "Clopidogrel", "Prasugrel", "Ticlopidine", "Ticagrelor", "Other P2Y12 Inhibitor", "No, for medical reason", "Non-compliant","PAR1 Inhibitor","Aggrenox"))
+
+ltf_data$factor_ltf_statin <- factor(ltf_data$LTF_STATIN, labels = c("No","Yes","No, for medical reason","Non-compliant"))
+
+ltf_data$factor_ltf_anticoag <- factor(ltf_data$LTF_ANTICOAG, labels = c("None","Warfarin (retired since 08/31/2016)","Dabigatran (Pradaxa)","Rivaroxaban (Xarelto)","Other","No, for Medical Reason","Non-compliant (retired since 12/15/2014)","Vitamin K Antagonist","Apixaban (Eliquis)","Edoxaban (Savaysa)"))
+
+ltf_data$factor_ltf_ace <- factor(ltf_data$LTF_ACE, labels = c("No","Yes","No, for medical reason","Non-compliant"))
+
+ltf_data$factor_ltf_betablocker <- factor(ltf_data$LTF_BETABLOCKER, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+ltf_data$factor_ltf_funcstatus <- factor(ltf_data$LTF_FUNCSTATUS, labels = c("Full","Light work","Self care","Assisted care","Bed bound"))
+
+ltf_data$factor_ltf_reperf <- factor(ltf_data$LTF_REPERF, labels = c("None","Headache (retro-ocular/ipsilateral)","Seizure","Hemorrhage"))
+
+ltf_data$factor_ltf_cni <- factor(ltf_data$LTF_CNI, labels = c("Resolved","Persistant"))
+
+ltf_data$factor_ltf_mi <- factor(ltf_data$LTF_MI, labels = c("No","Troponin only","EKG or clinical"))
+
+ltf_data$factor_ltf_imaging  <- factor(ltf_data$LTF_IMAGING, labels = c("None","Duplex","CTA","MRA","Arteriogram"))
+
+ltf_data$factor_ltf_imaging_dup_steno <- factor(ltf_data$LTF_IMAGING_DUP_STENO, labels = c("0-49%","50-69%","70-79%","80-99%","Occluded","Unknown (retired since 12/19/2017)"))
+
+ltf_data$factor_ltf_imaging_other_steno <- factor(ltf_data$LTF_IMAGING_OTHER_STENO, labels = c("0-49%","50-69%","70-79%","80-99%","Occluded"))
+
+ltf_data$factor_ltf_d30_admit_since_discharge <- factor(ltf_data$D30_ADMIT_SINCE_DISC, labels = c("No","Yes, Unplanned, related to procedure","Yes, Unplanned, unrelated to the procedure","Yes, Planned, related to procedure","Yes, Planned, unrelated to procedure"))
+
+ltf_data$factor_ltf_d30_admission_location <- factor(ltf_data$D30_ADMISSION_LOC, label = c("Same site as procedure","Different site than procedure"))
+
+ltf_data$factor_ltf_d30_admission_reason <- factor(ltf_data$D30_ADMISSION_REASON, label = c('Surgical Site Infection','Other infection','Wound complication','Cardiac complication','Vascular complication','VTE complication','Respiratory complication','CNS complication','Renal complication','GI complication','Other'))
+
+ltf_data$factor_ltf_d30_mortcause <- factor(ltf_data$D30_MORTCAUSE, labels = c('Related to disease or treatment','Unrelated to disease or treatment','Unsure'))
+
+ltf_data$factor_ltf_d30_ssi <- factor(ltf_data$D30_SSI, labels = c('Superficial','Deep'))
+############################### Final LTF Data ################################
+ltf_data_final <- ltf_data %>%
+  select(-all_of(factorVars_ltf))
+#112 Vars
+################################ Final Dataset ################################
+ltf_data_final <- ltf_data_final %>%
+  group_by(PRIMPROCID) %>%
+  arrange(desc(LTF_DAYS)) %>%
+  mutate(ltf_number = row_number()) %>%
+  ungroup() %>%
+  filter(ltf_number == 1) 
+
+cas_full <- left_join(proc_data_final, ltf_data, by = "PRIMPROCID", suffix = c(".proc", ".ltf"))
+
+write_rds(cas_full, 'output/cas_full.rds')
+rm(list = ls())
