@@ -1,0 +1,527 @@
+# I annotate all scripts to 'create' data sets with '_cr'
+# Analytic plans are annotated as '_an'
+
+# Use at your own risk!
+
+############################### Import Libraries ###############################
+library(tidyverse)
+
+############################## Import Proc Data ################################
+evar_proc <- read_csv('input/EVAR_PROC_20230201.csv')
+#436
+
+############################### Proc Data Types ################################
+numVars <- c('COVID_BOOSTER_DAYS','COVID_VACCINE_DAYS','AGE','TOTAL_LOS','POSTOP_LOS','HTCM','WTKG','QUIT_SMKG_DAYS','PREOP_CREAT','HEMO','PREOP_MAXAAADIA','LOWESTPREINTBP','HOURS_SYMPTOREP','HOURS_ADMITTOREP','TOTALPROCTIME','CONTRAST','CRYSTAL','EBL','INTRAOP_PRBC','ICUSTAY','POSTOP_PRBC','QUIT_SMKG_YEAR','AORNECKLEN','AORNECKDIA','COMILIACDIA_R','COMILIACDIA_L','INTILIACDIA_R','INTILIACDIA_L','FLUOROTIME','S_AIR_KERMA','S_DAP','LRGST_SHEATH_SIZE_R','LRGST_SHEATH_SIZE_L','S_AORGRAFTDIA_1','S_AORGRAFTDIA_2','S_AORGRAFTDIA_3','S_AORGRAFTDIA_4','S_AORGRAFTLEN_1','S_AORGRAFTLEN_2','S_AORGRAFTLEN_3','S_AORGRAFTLEN_4','S_ILIACGRAFTDIA_1_R','S_ILIACGRAFTDIA_2_R','S_ILIACGRAFTDIA_3_R','S_ILIACGRAFTLEN_1_R','S_ILIACGRAFTLEN_2_R','S_ILIACGRAFTLEN_3_R','S_ILIACGRAFTDIA_1_L','S_ILIACGRAFTDIA_2_L','S_ILIACGRAFTDIA_3_L','S_ILIACGRAFTLEN_1_L','S_ILIACGRAFTLEN_2_L','S_ILIACGRAFTLEN_3_L','DAYS_INTUBATED','LOWESTHEMO','HIGHCREAT','POSTOP_RETX_DAYS','S_RETX_GRAFTDIA_1','S_RETX_GRAFTDIA_2','S_RETX_GRAFTDIA_3','S_RETX_GRAFTDIA_4','S_RETX_GRAFTLEN_1','S_RETX_GRAFTLEN_2','S_RETX_GRAFTLEN_3','S_RETX_GRAFTLEN_4','RUCA1','RUCA2','ADI_NATRANK_MEDIAN')
+
+charVars <- c('PATIENTID','PROC_SURVIVALDAYS','PRIMPROCID','REGIONID','CENTERID','PHYSICIANID','S_ADD_IMAGE_GUIDE_OTHER','AORGRAFTDET_1','AORGRAFTDET_2','AORGRAFTDET_3','AORGRAFTDET_4','ILIACGRAFTDET_1_R','ILIACGRAFTDET_2_R','ILIACGRAFTDET_3_R','ILIACGRAFTDET_1_L','ILIACGRAFTDET_2_L','ILIACGRAFTDET_3_L','RETX_GRAFTDET_1','RETX_GRAFTDET_2','RETX_GRAFTDET_3','RETX_GRAFTDET_4','S_SUBMIT_WO_VALIDATION','S_PATIENT_ZIPCODE','S_CENTER_ZIPCODE','S_CENTER_STATE','GRAFTTYPE','CLOSURE_DEV_TYPE_R','CLOSURE_DEV_TYPE_L','S_PATIENT_ZIPCODE_5','S_LEGAL_CONTRACT_ENTITY_ID')
+
+factorVars <- c('SURGWEEKDAY','GENDER','RACE','PRIMARYINSURER','DC_STATUS','TRANSFER','PREOP_SMOKING','HTN','DIABETES','PRIOR_CAD','PRIOR_CABG','PRIOR_PCI','PRIOR_CHF','COPD','PREOP_DIALYSIS','STRESS','LIVINGSTATUS','PRIOR_CEACAS','PRIOR_ANEURREP','PRIOR_MAJAMP','PREOP_ASA','PREOP_P2Y','PREOP_STATIN','PREOP_BETABLOCKER','PREOP_ACE','PREOP_ANTICOAG','PREOP_EF','ILIACANEUR','URGENCY','MENTSTATUS','CARREST','EVACABD','COVID_VACCINATION','COVID_BOOSTER','ANESTHESIA','AORMAINDEV','SKINPREP','COVID_STATUS','COVID_SYMPTOMS','COVID_DELAY','COVID_DELAY_IMPACT','TIMETOEXTUB','POSTOP_MI','POSTOP_RESPIRATORY','LEGEMBO','INTESTINAL_ISCHEMIA','POSTOP_STROKE','DC_ASA','DC_STATIN','DC_P2Y','DC_BETABLOCKER','DC_ACE','DC_ANTICOAG','ABX','ABX_START','ABX_STOP','FUNCSTATUS','PRIOR_CVD','PREOP_DYSRHYTHMIA','GENHIST','AORNECKANGLE','NECKANGLE','ILIACANEURLOC_R','ILIACANEURLOC_L','ACCESS_R','ACCESS_L','FEMADJ_R','FEMADJ_L','ILIACADJ_R','ILIACADJ_L','CLOSURE_DEV_NUM_R','CLOSURE_DEV_NUM_L','USGUIDANCE','PROXAOREXT','ILIACEND_R','ILIACEND_L','INTILIAC_R','INTILIAC_L','STAGEDOCC_R','STAGEDOCC_L','OPENBYPASS_R','OPENBYPASS_L','FEMFEMBYP','S_ANCHORS_USED','ADDAORDEV_IND_2','ADDAORDEV_IND_3','ADDAORDEV_IND_4','NUMDEV_R','DEVEND_R','NUMDEV_L','DEVEND_L','RENALARTCOV','RENALART_R','RENALART_L','ILIACARTINJ','ILIACFEMTHROMB','DISTALEMBO','POSTOP_IV','ACCESS_HEMATOMA_R','ACCESS_HEMATOMA_L','ACCESS_OCCLUSION_R','ACCESS_OCCLUSION_L','ACCESS_INFECTION_R','ACCESS_INFECTION_L','POSTOP_DIALYSIS','POSTOP_MORTCAUSE','RETX_NUMDEV','RETX_DEVLOC_1','RETX_DEVLOC_2','RETX_DEVLOC_3','RETX_DEVLOC_4','RETX_DISTALEND_1','RETX_DISTALEND_2','RETX_DISTALEND_3','RETX_DISTALEND_4','S_RETX_ANCHORS_USED','RETX_EMBOROUTE','RETX_ABSURGROUTE','RETX_GRAFTREP','RETX_GRAFTOCC','RETX_STENOSIS','IDE_OTHER','LTF_CALC','S_SSN_INDICATOR','S_TRAINEE_1_LEVEL','S_TRAINEE_2_LEVEL','S_TRAINEE_1_ROLE','S_TRAINEE_2_ROLE','S_OTHER_ASSISTANTS','S_OTHER_ASSISTANT_TYPE_1','S_OTHER_ASSISTANT_TYPE_2')
+
+logicalVars <- c('DEAD','ETHNICITY','PRIOR_BYPASS','PRIOR_PTASTENT','HXFAMAAA','UNFITOAAA','CONVTOOPEN','POSTOP_DYSRHYTHMIA','POSTOP_CHF','REOPERATION','POSTOP_COMPLICATIONS','PRIOR_AORSURG_0','PRIOR_AORSURG_1','PRIOR_AORSURG_2','PRIOR_AORSURG_3','PRIOR_AORSURG_4','PRIOR_AORSURG_5','PRIOR_AORSURG_6','PRIOR_AORSURG_7','PRIOR_AORSURG_8','UNFITOAAA_REASON_1','UNFITOAAA_REASON_2','UNFITOAAA_REASON_3','UNFITOAAA_REASON_4','S_ADD_IMAGE_GUIDE_NONE','S_ADD_IMAGE_GUIDE_CT_FLU_FUSN','S_ADD_IMAGE_GUIDE_CTRLINE_IOPS','S_ADD_IMAGE_GUIDE_CYDAR_EV','S_ADD_IMAGE_GUIDE_PHILIPS_FORS','S_ADD_IMAGE_GUIDE_OTH','COILOCC_0','COILOCC_1','COILOCC_2','COILOCC_3','COILOCC_4','COILOCC_5','COILOCC_6','ADDAORDEV_PLAN_2','ADDAORDEV_PLAN_3','ADDAORDEV_PLAN_4','PLANNEDDEV_1_R','PLANNEDDEV_2_R','PLANNEDDEV_3_R','UNPLANIND_1_R_1','UNPLANIND_1_R_2','UNPLANIND_1_R_3','UNPLANIND_1_R_4','UNPLANIND_2_R_1','UNPLANIND_2_R_2','UNPLANIND_2_R_3','UNPLANIND_2_R_4','UNPLANIND_3_R_1','UNPLANIND_3_R_2','UNPLANIND_3_R_3','UNPLANIND_3_R_4','PLANNEDDEV_1_L','PLANNEDDEV_2_L','PLANNEDDEV_3_L','UNPLANIND_1_L_1','UNPLANIND_1_L_2','UNPLANIND_1_L_3','UNPLANIND_1_L_4','UNPLANIND_2_L_1','UNPLANIND_2_L_2','UNPLANIND_2_L_3','UNPLANIND_2_L_4','UNPLANIND_3_L_1','UNPLANIND_3_L_2','UNPLANIND_3_L_3','UNPLANIND_3_L_4','INTRAOP_COMPLICATIONS','LEAKATCOMP_0','LEAKATCOMP_1','LEAKATCOMP_2','LEAKATCOMP_3','LEAKATCOMP_4','LEAKATCOMP_5','LEAKATCOMP_6','LEAKATCOMP_7','LEAKATCOMP_8','LEAKATCOMP_9','LEAKATCOMP_10','RETX_INDICATIONREOP_2','RETX_INDICATIONREOP_3','RETX_INDICATIONREOP_4','RETX_INDICATIONREOP_5','RETX_INDICATIONREOP_6','RETX_INDICATION_1','RETX_INDICATION_2','RETX_INDICATION_3','RETX_INDICATION_4','RETX_INDICATION_5','RETX_INDICATION_6','RETX_INDICATION_7','RETX_INDICATION_8','RETX_ENDOLEAKTRT_1','RETX_ENDOLEAKTRT_2','RETX_ENDOLEAKTRT_3','RETX_ENDOLEAKTRT_4','RETX_ENDOLEAKTRT_5','RETX_ENDOLEAKTRT_6','RETX_ENDOLEAKTRT_7','RETX_ENDOLEAKTRT_8','RETX_ENDOLEAKRES','RETX_TRTTYPE_1','RETX_TRTTYPE_2','RETX_TRTTYPE_3','RETX_TRTTYPE_4','RETX_TRTTYPE_5','RETX_TRTTYPE_6','RETX_TRTTYPE_7','RETX_BALLOON_1','RETX_BALLOON_2','RETX_BALLOON_3','RETX_BALLOON_4','RETX_EMBOLOC_1','RETX_EMBOLOC_2','RETX_EMBOLOC_3','RETX_EMBOLOC_4','RETX_EMBOMETHOD_1','RETX_EMBOMETHOD_2','RETX_EMBOMETHOD_3','RETX_EMBOMETHOD_4','RETX_EMBOMETHOD_5','RETX_EMBOMETHOD_6','RETX_SURGTYPE_1','RETX_SURGTYPE_2','RETX_SURGTYPE_3','RETX_LIGATED_1','RETX_LIGATED_2','RETX_LIGATED_3','RETX_LIGATED_4','RETX_SACOPEN','RETX_OCCTRT_1','RETX_OCCTRT_2','RETX_OCCTRT_3','RETX_OCCTRT_4','RETX_OCCTRT_5','RETX_OCCTRT_6','RETX_OCCTRT_7','RETX_OCCTRT_8','RETX_STENOTRT_1','RETX_STENOTRT_2','RETX_STENOTRT_3','RETX_STENOTRT_4','RETX_STENOTRT_5','COVID_HISTORY')
+
+#Correct Date formats
+evar_proc <- evar_proc %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+evar_proc <- evar_proc %>%
+  mutate(across(contains('_DATE'), ~mdy(.)))
+
+#apply data types
+evar_proc[numVars] <- lapply(evar_proc[numVars], as.numeric)
+evar_proc[charVars] <- lapply(evar_proc[charVars], as.character)
+evar_proc[logicalVars] <- lapply(evar_proc[logicalVars], as.logical)
+evar_proc[factorVars] <- lapply(evar_proc[factorVars], as.factor)
+
+############################ Remove Retired Variables #############################
+retired <- c('R_PRIOR_CABGPTCA','R_PREOP_AMBUL','R_ASACLASS','R_PRIOR_CEA','R_PREOP_MAXIADIA','R_UNFITGENANA','R_GRAFTBODYDIA','R_HGINTENT','R_HGUNINTENT','R_ARTINJURY','R_INTERVENTION','R_CONVTOOPEN_REASON','R_ARRIVALBPM','R_HIGHBPM','R_CCPROC','R_PREOP_HYPOCOIL','R_INTRAOP_HYPOCOIL','R_GRAFTEXT','R_FEMENDAR','R_ILIOBYP','R_THROMB','R_ILIACANGIO','R_ILIACSTENT','R_RENALSTENT','R_OTHERART','R_VASOREQ','R_POSTOP_RENAL','R_RTORBLEED','R_ANTIBIOTICGEN','R_ANTIBIOTICSTART','R_ANTIBIOTICEND','R_PRIOR_AORSURG_9','R_GRAFTLIMBDIA_L','R_GRAFTLIMBDIA_R','R_LEAKATCOMP_11','R_LEAKATCOMP_12','R_LEAKATCOMP_13','R_RETX_INDICATIONREOP_1','R_POSTOP_SSI','R_HEMATOMA','R_POSTOP_SITEOCC')
+
+evar_proc <- evar_proc %>%
+  select(-all_of(retired))
+#395
+
+############################# Recode Proc factors ##############################
+evar_proc$factor_s_trainee_1_level <- factor(evar_proc$S_TRAINEE_1_LEVEL, labels = c('Medical student','PGY 1','PGY 2','PGY 3','PGY 4','PGY 5','PGY 6','PGY 7','PGY 8','PGY 9','PGY 10'))
+
+evar_proc$factor_s_trainee_2_level <- factor(evar_proc$S_TRAINEE_2_LEVEL, labels = c('Medical student','PGY 1','PGY 2','PGY 3','PGY 4','PGY 5','PGY 6','PGY 7','PGY 8','PGY 9','PGY 10'))
+
+evar_proc$factor_s_trainee_1_role <- factor(evar_proc$S_TRAINEE_1_ROLE, labels = c('Primary surgeon','Teaching trainee','First assistant','Second assistant'))
+
+evar_proc$factor_s_trainee_2_role <- factor(evar_proc$S_TRAINEE_2_ROLE, labels = c('Primary surgeon','Teaching trainee','First assistant','Second assistant'))
+
+evar_proc$factor_s_other_assistants <- factor(evar_proc$S_OTHER_ASSISTANTS, labels = c('None','1','2'))
+
+evar_proc$factor_s_other_assistants_type_1 <- factor(evar_proc$S_OTHER_ASSISTANT_TYPE_1, labels = c('Physician', 'Nurse','NP','PA','RFNA','Other'))
+
+evar_proc$factor_s_other_assistants_type_2 <- factor(evar_proc$S_OTHER_ASSISTANT_TYPE_2, labels = c('Physician', 'Nurse','NP','PA','RFNA','Other'))
+
+evar_proc$factor_covid_vaccination <- factor(evar_proc$COVID_VACCINATION, labels = c('Yes','In process','No','Refused','Not eligible','Not available'))
+
+evar_proc$factor_covid_booster <- factor(evar_proc$COVID_BOOSTER, labels = c('Yes','No','Refused','Not eligible','Not available'))
+
+evar_proc$factor_surgweekday <- factor(evar_proc$SURGWEEKDAY, labels = c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'))
+
+evar_proc$factor_gender <- factor(evar_proc$GENDER, labels = c('Male', 'Female', 'Other'))
+
+evar_proc$factor_race <- factor(evar_proc$RACE, labels = c('American Indian or Alaskan Native','Asian','Black or African American','Native Hawaiian or other Pacific Islander','White','More than 1 race','Unknown / Other'))
+
+evar_proc$factor_primaryinsurer <- factor(evar_proc$PRIMARYINSURER, labels = c('Medicare', 'Medicaid', 'Commercial', 'Military/VA', 'Non US insurance', 'Self pay', 'Medicare Advantage'))
+
+evar_proc$factor_dc_status <- factor(evar_proc$DC_STATUS, labels = c('Home','Rehab unit','Nursing home','Dead','Other hospital','Homeless'))
+
+evar_proc$factor_transfer <- factor(evar_proc$TRANSFER, labels = c('No', 'Hospital', 'Rehab unit'))
+
+evar_proc$factor_preop_smoking <- factor(evar_proc$PREOP_SMOKING, labels = c('Never', 'Prior', 'Current'))
+
+evar_proc$factor_htn <- factor(evar_proc$HTN, labels = c('No', 'Yes (>=140/90 or history - retired since 11/15/2016)', 'Yes, controlled [added on 04/13/2020]', 'Yes, uncontrolled [added on 04/13/2020]'))
+
+evar_proc$factor_diabetes <- factor(evar_proc$DIABETES, labels = c('None', 'Diet', 'Non-insulin meds', 'Insulin'))
+
+evar_proc$factor_prior_cad <- factor(evar_proc$PRIOR_CAD, labels = c('None', 'Hx MI but no sx', 'Stable angina', 'Unstable angina or MI < 6 mos (retired since 09/12/2012)', 'MI < 6 mos', 'Unstable angina'))
+
+evar_proc$factor_prior_cabg <- factor(evar_proc$PRIOR_CABG, labels = c('None', '<5yr ago', '>= 5yrs ago'))
+
+evar_proc$factor_prior_pci <- factor(evar_proc$PRIOR_PCI, labels = c('None', '<5yr ago', '>= 5yrs ago'))
+
+evar_proc$factor_prior_chf <- factor(evar_proc$PRIOR_CHF, labels = c('None', 'Asymptomatic, hx only', 'Mild' ,'Moderate CHF', 'Severe CHF'))
+
+evar_proc$factor_copd <- factor(evar_proc$COPD, labels = c('No', 'Not treated', 'On meds', 'On home oxygen'))
+
+evar_proc$factor_preop_dialysis <- factor(evar_proc$PREOP_DIALYSIS, labels = c('No', 'Functioning transplant', 'On dialysis'))
+
+evar_proc$factor_stress <- factor(evar_proc$STRESS, labels = c('Not done', 'Normal', 'Ischemia', 'MI', 'Ischemia and MI'))
+
+evar_proc$factor_livingstatus <- factor(evar_proc$LIVINGSTATUS, labels = c('Home', 'Nursing home', 'Homeless'))
+
+evar_proc$factor_prior_ceacas <- factor(evar_proc$PRIOR_CEACAS, labels = c('Neither','CEA','CAS','Both','huh?'))
+
+evar_proc$factor_prior_aneurrep <- factor(evar_proc$PRIOR_ANEURREP, labels = c('None','Aortic','Other','Both','huh?'))
+
+evar_proc$factor_prior_majamp <- factor(evar_proc$PRIOR_MAJAMP, labels = c('No', 'Yes (retired since 09/12/2012)', 'BK/thru knee', 'AK or higher'))
+
+evar_proc$factor_preop_asa <- factor(evar_proc$PREOP_ASA, labels = c('No', 'Yes', 'No, for medical reason',' Non-compliant'))
+
+evar_proc$factor_preop_p2y <- factor(evar_proc$PREOP_P2Y, labels = c('None', 'Clopidogrel', 'Prasugrel', 'Ticlopidine', 'Ticagrelor', 'Other', 'No, for medical reason', 'Non-compliant'))
+
+evar_proc$factor_preop_statin <- factor(evar_proc$PREOP_STATIN, labels = c('No', 'Yes','No, for medical reason','Non-compliant'))
+
+evar_proc$factor_preop_betablocker <- factor(evar_proc$PREOP_BETABLOCKER, labels = c('No','Pre-op 1-30 days','Chronic > 30 days','No, for medical reason','Op day only','Non-compliant'))
+
+evar_proc$factor_preop_ace <- factor(evar_proc$PREOP_ACE, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+evar_proc$factor_preop_anticoag <- factor(evar_proc$PREOP_ANTICOAG, labels = c('None','Warfarin','Dabigatran','Rivaroxaban','Other','No, for medical reason','Non-compliant'))
+
+evar_proc$factor_preop_ef <- factor(evar_proc$PREOP_EF, labels = c('<30%','30-50%','>50%','Not done','Unknown'))
+
+evar_proc$factor_iliacaneur <- factor(evar_proc$ILIACANEUR, labels = c('No', 'Right', 'Left', 'Bilateral','Unilateral (retired since 12/17/2014)'))
+
+evar_proc$factor_urgency <- factor(evar_proc$URGENCY, labels = c('Elective','Symptomatic','Ruptured'))
+
+evar_proc$factor_mentstatus <- factor(evar_proc$MENTSTATUS, labels = c('Normal','Disoriented','Unconscious'))
+
+evar_proc$factor_carrest <- factor(evar_proc$CARREST, labels = c('No','Pre-op','Intra-op','Yes (retired since 12/17/2014)'))
+                                   
+evar_proc$factor_evacabd <-  factor(evar_proc$EVACABD, labels = c('No','Yes, Initial operation','Yes, Post-op','Yes (retired since 12/17/2014)'))
+
+evar_proc$factor_anesthesia <- factor(evar_proc$ANESTHESIA, labels = c('Local','Regional','General'))
+
+evar_proc$factor_aormaindev <- factor(evar_proc$AORMAINDEV, labels = c('Bifurcated infra-renal','Bifurcated supra-renal fixation','Aorto-uni-iliac, right','Aorto-uni-iliac, left','Bilateral aorto-iliac limbs','Aorto-aortic','Aorto-bi-iliac (retired since 12/17/2014)','Aorto-uni-iliac (retired since 10/14/2010)'))
+
+evar_proc$factor_skinprep <- factor(evar_proc$SKINPREP, labels = c('Chlorhexidine','Alcohol','Iodine','Chlor + iodine','Chlor + alcohol','Iodine + alcohol','All 3'))
+
+evar_proc$factor_timetoextub <- factor(evar_proc$TIMETOEXTUB, labels = c('In OR','<12 hrs','>=12 hrs (retired since 10/14/2010)','12-24 hrs','>24 hrs'))
+
+evar_proc$factor_postop_mi <- factor(evar_proc$POSTOP_MI, labels = c('No','Troponin only','EKG or clinical'))
+
+evar_proc$factor_postop_respiratory <- factor(evar_proc$POSTOP_RESPIRATORY, labels = c('No','Pneumonia','Ventilator'))
+
+evar_proc$factor_legembo <- factor(evar_proc$LEGEMBO, labels = c('No','Medical Rx','Endovascular Rx','Surgical Rx','Major Amputation'))
+
+evar_proc$factor_intestinal_ischemia <- factor(evar_proc$INTESTINAL_ISCHEMIA, labels = c('No','Medical Rx','Endovascular Rx','Surgical Revasc','Bowel Resection'))
+
+evar_proc$factor_postop_stroke <- factor(evar_proc$POSTOP_STROKE, labels = c('None','Minor','Major'))
+
+evar_proc$factor_dc_asa <- factor(evar_proc$DC_ASA, labels = c('No','Yes','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+evar_proc$factor_dc_statin <- factor(evar_proc$DC_STATIN, labels = c('No','Yes','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+evar_proc$factor_dc_p2y <- factor(evar_proc$DC_P2Y, labels = c('None','Clopidogrel','Prasugrel','Ticlopidine','Ticagrelor','Other','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+evar_proc$factor_dc_betablocker <- factor(evar_proc$DC_BETABLOCKER, labels = c('No','Yes','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+evar_proc$factor_dc_ace <- factor(evar_proc$DC_ACE, labels = c('No','Yes','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+evar_proc$factor_dc_anticoag <- factor(evar_proc$DC_ANTICOAG, labels = c('None','Warfarin','Dabigatran','Rivaroxaban','Other','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+evar_proc$factor_abx <- factor(evar_proc$ABX, labels = c('No','Yes','No, for medical reason'))
+
+evar_proc$factor_abx_start <- factor(evar_proc$ABX_START, labels = c('No','Yes','No, for medical reason'))
+
+evar_proc$factor_abx_stop <- factor(evar_proc$ABX_STOP, labels = c('No','Yes','No, for medical reason'))
+
+evar_proc$factor_funcstatus <- factor(evar_proc$FUNCSTATUS, labels = c('Full','Light work','Self care','Assisted care','Bed bound'))
+
+evar_proc$factor_prior_cvd <- factor(evar_proc$PRIOR_CVD, labels = c('None','Hx stroke, asymptomatic','Hx stroke, minor deficit','Hx stroke, major deficit'))
+
+evar_proc$factor_preop_dysrhythmia <- factor(evar_proc$PREOP_DYSRHYTHMIA, labels = c('No','Yes, A-fib/flutter (retired since 11/15/2016)','Yes, ventricular','A-V block w pacemaker','Yes, with ICD','Yes, atrial','Other'))
+
+evar_proc$factor_genhist <- factor(evar_proc$GENHIST, labels = c('None','Marfans','Ehlers-Danlos','Loeys-Dietz','Non-specific'))
+
+evar_proc$factor_aorneckangle <- factor(evar_proc$AORNECKANGLE, labels = c('< 45 Degrees','45-60 Degrees','61-75 Degrees','76-90 Degrees','> 90 Degrees'))
+
+evar_proc$factor_neckangle <- factor(evar_proc$NECKANGLE, labels = c('< 45 Degrees','45-60 Degrees','61-75 Degrees','76-90 Degrees','> 90 Degrees'))
+
+evar_proc$factor_iliacaneurloc_r <- factor(evar_proc$ILIACANEURLOC_R, labels = c('Common','Internal','Both'))
+
+evar_proc$factor_iliacaneurloc_l <- factor(evar_proc$ILIACANEURLOC_L, labels = c('Common','Internal','Both'))
+
+evar_proc$factor_access_r <- factor(evar_proc$ACCESS_R, labels = c('None','Percutaneous femoral','Open femoral, transverse','Open femoral, vertical','Open femoral, failed percutaneous','Iliac, via retroperitoneal'))
+
+evar_proc$factor_access_l <- factor(evar_proc$ACCESS_L, labels = c('None','Percutaneous femoral','Open femoral, transverse','Open femoral, vertical','Open femoral, failed percutaneous','Iliac, via retroperitoneal'))
+
+evar_proc$factor_femadj_r <- factor(evar_proc$FEMADJ_R, labels = c('None','Endarterectomy','Patch only','Interposition graft'))
+
+evar_proc$factor_femadj_l <- factor(evar_proc$FEMADJ_L, labels = c('None','Endarterectomy','Patch only','Interposition graft'))
+
+evar_proc$factor_iliacadj_r <- factor(evar_proc$ILIACADJ_R, labels = c('None','PTA', 'Stent','Stent Graft','Other'))
+
+evar_proc$factor_iliacadj_l <- factor(evar_proc$ILIACADJ_L, labels = c('None','PTA', 'Stent','Stent Graft','Other'))
+
+evar_proc$factor_closure_dev_num_r <- factor(evar_proc$CLOSURE_DEV_NUM_R, labels = c('0','1','2','3','4','5','>5'))
+
+evar_proc$factor_closure_dev_num_l <- factor(evar_proc$CLOSURE_DEV_NUM_L, labels = c('0','1','2','3','4','5','>5'))
+
+evar_proc$factor_usguidance <- factor(evar_proc$USGUIDANCE, labels = c('No','Right','Left','Bilateral'))
+
+evar_proc$factor_proxaorext <- factor(evar_proc$PROXAOREXT, labels = c('None','1','2','3'))
+
+evar_proc$factor_iliacend_r <- factor(evar_proc$ILIACEND_R, labels = c('None','Common', 'External, Intended','External, Unintended'))
+
+evar_proc$factor_iliacend_l <- factor(evar_proc$ILIACEND_L, labels = c('None','Common', 'External, Intended','External, Unintended'))
+
+evar_proc$factor_intiliac_r <- factor(evar_proc$INTILIAC_R, labels = c('Coil Occlusion','Amplatzer plug','Covered','Branch graft','Snorkel','Open bypass'))
+
+evar_proc$factor_intiliac_l <- factor(evar_proc$INTILIAC_L, labels = c('Coil Occlusion','Amplatzer plug','Covered','Branch graft','Snorkel','Open bypass'))
+
+evar_proc$factor_stagedocc_r <- factor(evar_proc$STAGEDOCC_R, labels = c('No','Within 1 week','1-2 weeks','> 2 weeks preop'))
+
+evar_proc$factor_stagedocc_l <- factor(evar_proc$STAGEDOCC_L, labels = c('No','Within 1 week','1-2 weeks','> 2 weeks preop'))
+
+evar_proc$factor_openbypass_r <- factor(evar_proc$OPENBYPASS_R, labels = c('Concomitant','Staged at prior operation'))
+
+evar_proc$factor_openbypass_l <- factor(evar_proc$OPENBYPASS_L, labels = c('Concomitant','Staged at prior operation'))
+
+evar_proc$factor_femfembyp <- factor(evar_proc$FEMFEMBYP, labels = c('None','PTFE','Dacron','Heparin bonded PTFE','Heparin bonded Dacron','Other','Yes (retired since 12/17/2014)','No (retired since 12/17/2014)'))
+
+evar_proc$factor_s_anchors_used <- factor(evar_proc$S_ANCHORS_USED, labels = c('No','Heli-FX','Other'))
+
+evar_proc$factor_addaordev_ind_2 <- factor(evar_proc$ADDAORDEV_IND_2, labels = c('Type I Endoleak despite intended placement','Type I Endoleak from  migration','Migration without endoleak','Type III endoleak'))
+
+evar_proc$factor_addaordev_ind_3 <- factor(evar_proc$ADDAORDEV_IND_3, labels = c('Type I Endoleak despite intended placement','Type I Endoleak from  migration','Migration without endoleak','Type III endoleak'))
+
+evar_proc$factor_addaordev_ind_4 <- factor(evar_proc$ADDAORDEV_IND_4, labels = c('Type I Endoleak despite intended placement','Type I Endoleak from  migration','Migration without endoleak','Type III endoleak'))
+
+evar_proc$factor_numdev_r <- factor(evar_proc$NUMDEV_R, labels = c('None','1','2','3'))
+
+evar_proc$factor_devend_r <- factor(evar_proc$DEVEND_R, labels = c('Common','External','Internal','External and internal (branched)'))
+
+evar_proc$factor_numdev_l <- factor(evar_proc$NUMDEV_L, labels = c('None','1','2','3'))
+
+evar_proc$factor_devend_l <- factor(evar_proc$DEVEND_L, labels = c('Common','External','Internal','External and internal (branched)'))
+
+evar_proc$factor_renalartcov <- factor(evar_proc$RENALARTCOV, labels = c('No','Accessory','Main','Both'))
+
+evar_proc$factor_renalart_r <- factor(evar_proc$RENALART_R, labels = c('Not covered','Covered intended','Covered intended, stented','Covered intended, stent grafted','Covered intended, open bypass','Covered unintended','Covered unintended, stented','Covered unintended, stent grafted','Covered unintended, open bypass'))
+
+evar_proc$factor_renalart_l <- factor(evar_proc$RENALART_L, labels = c('Not covered','Covered intended','Covered intended, stented','Covered intended, stent grafted','Covered intended, open bypass','Covered unintended','Covered unintended, stented','Covered unintended, stent grafted','Covered unintended, open bypass'))
+
+evar_proc$factor_iliacartinj <- factor(evar_proc$ILIACARTINJ, labels = c('None','Stent/PTA','Stent-Graft','Open Repair'))
+
+evar_proc$factor_iliafemthromb <- factor(evar_proc$ILIACFEMTHROMB, labels = c('No','Right','Left','Both'))
+
+evar_proc$factor_distalembo <- factor(evar_proc$DISTALEMBO, labels = c('No','Right','Left','Both'))
+
+evar_proc$factor_postop_iv <- factor(evar_proc$POSTOP_IV, labels = c('No','Yes, < 4 hrs','Yes, 4-24 hrs','>24 hrs postop'))
+
+evar_proc$factor_access_hematoma_r <- factor(evar_proc$ACCESS_HEMATOMA_R, labels = c('No','Minor','Transfusion','Thrombin injection','Surgical Rx'))
+
+evar_proc$factor_access_hematoma_l <- factor(evar_proc$ACCESS_HEMATOMA_L, labels = c('No','Minor','Transfusion','Thrombin injection','Surgical Rx'))
+
+evar_proc$factor_access_occlusion_r <- factor(evar_proc$ACCESS_OCCLUSION_R, labels = c('No','Interventional Rx','Surgical Rx'))
+
+evar_proc$factor_access_occlusion_l <- factor(evar_proc$ACCESS_OCCLUSION_L, labels = c('No','Medical Rx', 'Interventional Rx','Surgical Rx'))
+
+evar_proc$factor_access_infection_r <- factor(evar_proc$ACCESS_INFECTION_R, labels = c('No','Superficial','Deep','Organ/space'))
+
+evar_proc$factor_access_infection_l <- factor(evar_proc$ACCESS_INFECTION_L, labels = c('No','Superficial','Deep','Organ/space'))
+
+evar_proc$factor_postop_dialysis <- factor(evar_proc$POSTOP_DIALYSIS, labels = c('None','Temporary','At discharge'))
+
+evar_proc$factor_postop_mortcause <- factor(evar_proc$POSTOP_MORTCAUSE, labels = c('Related to disease or treatment','Unrelated to disease or treatment','Unsure'))
+
+evar_proc$factor_retx_numdev <- factor(evar_proc$RETX_NUMDEV, labels = c(1,2,3,4))
+
+evar_proc$factor_retx_devloc_1 <- factor(evar_proc$RETX_DEVLOC_1, labels = c('Aorta','Right Limb','Left Limb'))
+
+#evar_proc$factor_retx_devloc_2 <- factor(evar_proc$RETX_DEVLOC_2, labels = c('Aorta','Right Limb','Left Limb'))
+
+#evar_proc$factor_retx_devloc_3 <- factor(evar_proc$RETX_DEVLOC_3, labels = c('Aorta','Right Limb','Left Limb'))
+
+#evar_proc$factor_retx_devloc_4 <- factor(evar_proc$RETX_DEVLOC_4, labels = c('Aorta','Right Limb','Left Limb'))
+
+#evar_proc$factor_retx_distalend_1 <- factor(evar_proc$RETX_DISTALEND_1, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_proc$factor_retx_distalend_2 <- factor(evar_proc$RETX_DISTALEND_2, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_proc$factor_retx_distalend_3 <- factor(evar_proc$RETX_DISTALEND_3, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_proc$factor_retx_distalend_4 <- factor(evar_proc$RETX_DISTALEND_4, labels = c('Common','External','Internal','External and internal (branched)'))
+
+evar_proc$factor_retx_anchors_used <- factor(evar_proc$S_RETX_ANCHORS_USED, labels = c('Heli-FX'))
+
+#evar_proc$factor_retx_emboroute <- factor(evar_proc$RETX_EMBOROUTE, labels = c('Transarterial','Translumbar','Transcaval'))
+
+evar_proc$factor_retx_absurgroute <- factor(evar_proc$RETX_ABSURGROUTE, labels = c('Retroperitoneal','Transabdominal','Laparoscopic'))
+
+evar_proc$factor_retx_graftrep <- factor(evar_proc$RETX_GRAFTREP, labels = c('Replace proximal endograft','Replace distal endograft','Replace entire endograft'))
+
+evar_proc$factor_retx_graftocc <- factor(evar_proc$RETX_GRAFTOCC, labels = c('Right','Left','Both'))
+
+#evar_proc$factor_retx_stenosis <- factor(evar_proc$RETX_STENOSIS, labels = c('Right','Left','Both'))
+
+evar_proc$factor_ide_other <- factor(evar_proc$IDE_OTHER, labels = c('No IDE or Other device','IDE Device','Other Device'))
+
+evar_proc$factor_ltf_calc <- factor(evar_proc$LTF_CALC, labels = c('No','Yes','Exclude'))
+
+evar_proc$factor_s_ssn_indicator <- factor(evar_proc$S_SSN_INDICATOR, labels = c('Complete','Last 4 only','Not Provided'))
+
+str(evar_proc$SURGERY_DT)
+#513 vars
+############################### Final Proc Data ################################
+#factors that were converted
+converted_factors <- c('SURGWEEKDAY','GENDER','RACE','PRIMARYINSURER','DC_STATUS','TRANSFER','PREOP_SMOKING','HTN','DIABETES','PRIOR_CAD','PRIOR_CABG','PRIOR_PCI','PRIOR_CHF','COPD','PREOP_DIALYSIS','STRESS','LIVINGSTATUS','PRIOR_CEACAS','PRIOR_ANEURREP','PRIOR_MAJAMP','PREOP_ASA','PREOP_P2Y','PREOP_STATIN','PREOP_BETABLOCKER','PREOP_ACE','PREOP_ANTICOAG','PREOP_EF','ILIACANEUR','URGENCY','MENTSTATUS','CARREST','EVACABD','COVID_VACCINATION','COVID_BOOSTER','ANESTHESIA','AORMAINDEV','SKINPREP','TIMETOEXTUB','POSTOP_MI','POSTOP_RESPIRATORY','LEGEMBO','INTESTINAL_ISCHEMIA','POSTOP_STROKE','DC_ASA','DC_STATIN','DC_P2Y','DC_BETABLOCKER','DC_ACE','DC_ANTICOAG','ABX','ABX_START','ABX_STOP','FUNCSTATUS','PRIOR_CVD','PREOP_DYSRHYTHMIA','GENHIST','AORNECKANGLE','NECKANGLE','ILIACANEURLOC_R','ILIACANEURLOC_L','ACCESS_R','ACCESS_L','FEMADJ_R','FEMADJ_L','ILIACADJ_R','ILIACADJ_L','CLOSURE_DEV_NUM_R','CLOSURE_DEV_NUM_L','USGUIDANCE','PROXAOREXT','ILIACEND_R','ILIACEND_L','INTILIAC_R','INTILIAC_L','STAGEDOCC_R','STAGEDOCC_L','OPENBYPASS_R','OPENBYPASS_L','FEMFEMBYP','NUMDEV_R','DEVEND_R','NUMDEV_L','DEVEND_L','RENALARTCOV','RENALART_R','RENALART_L','ILIACARTINJ','ILIACFEMTHROMB','DISTALEMBO','POSTOP_IV','ACCESS_HEMATOMA_R','ACCESS_HEMATOMA_L','ACCESS_OCCLUSION_R','ACCESS_OCCLUSION_L','ACCESS_INFECTION_R','ACCESS_INFECTION_L','POSTOP_DIALYSIS','POSTOP_MORTCAUSE','RETX_NUMDEV','RETX_DEVLOC_1','RETX_ABSURGROUTE','RETX_GRAFTREP','RETX_GRAFTOCC','IDE_OTHER','LTF_CALC','S_TRAINEE_1_LEVEL','S_TRAINEE_2_LEVEL','S_TRAINEE_1_ROLE','S_TRAINEE_2_ROLE','S_OTHER_ASSISTANTS','S_OTHER_ASSISTANT_TYPE_1','S_OTHER_ASSISTANT_TYPE_2','S_RETX_ANCHORS_USED','S_SSN_INDICATOR','ADDAORDEV_IND_2','ADDAORDEV_IND_3','ADDAORDEV_IND_4','S_ANCHORS_USED')
+
+evar_proc_final_1 <- evar_proc %>%
+  select(-all_of(converted_factors))
+
+willnotuse <-c('AGECAT','HTIN','WTLB','PREOP_CREAT_UMOL','HEMO_L','HIGHCREAT_UMOL','S_TRAINEE_1','S_TRAINEE_2')
+
+evar_proc_final <- evar_proc_final_1 %>%
+  select(-all_of(willnotuse))
+#388 vars
+write_rds(evar_proc_final,'output/evar_proc_final.rds')
+
+############################## Import LTF Data #################################
+evar_ltf <- read_csv('input/EVAR_LTF_20230201.csv')
+#386 vars
+################################ LTF Data Types ################################
+ltf_numVars = c('PROC_SURVIVALDAYS','LTF_DAYS','LTF_CONVTOOPEN_DAYS','LTF_MAXAAADIA','LTF_CREATININE','LTF_IMAGING_DAYS','LTF_RETX1_RETX_DAYS','LTF_RETX1_ADMIT_DAYS','LTF_RETX1_DC_DAYS','LTF_S_RETX1_GRAFTDIA_1_L','LTF_S_RETX1_GRAFTDIA_2_L','LTF_S_RETX1_GRAFTDIA_3_L','LTF_S_RETX1_GRAFTDIA_4_L','LTF_S_RETX1_GRAFTLEN_1_L','LTF_S_RETX1_GRAFTLEN_2_L','LTF_S_RETX1_GRAFTLEN_3_L','LTF_S_RETX1_GRAFTLEN_4_L','LTF_RETX2_RETX_DAYS','LTF_RETX2_ADMIT_DAYS','LTF_RETX2_DC_DAYS','LTF_S_RETX2_GRAFTDIA_1_L','LTF_S_RETX2_GRAFTDIA_2_L','LTF_S_RETX2_GRAFTDIA_3_L','LTF_S_RETX2_GRAFTDIA_4_L','LTF_S_RETX2_GRAFTLEN_1_L','LTF_S_RETX2_GRAFTLEN_2_L','LTF_S_RETX2_GRAFTLEN_3_L','LTF_S_RETX2_GRAFTLEN_4_L','LTF_RETX3_RETX_DAYS','LTF_RETX3_ADMIT_DAYS','LTF_RETX3_DC_DAYS','LTF_S_RETX3_GRAFT_DIA_LT_1_B','LTF_S_RETX3_GRAFTDIA_2_L','LTF_S_RETX3_GRAFTDIA_3_L','LTF_S_RETX3_GRAFTDIA_4_L','LTF_S_RETX3_GRAFTLEN_1_L','LTF_S_RETX3_GRAFTLEN_2_L','LTF_S_RETX3_GRAFTLEN_3_L','LTF_S_RETX3_GRAFTLEN_4_L','D30_DAYS')
+
+ltf_charVars = c('CENTERID','PATIENTID','PRIMPROCID','LTF_ID','LTF_RETX1_GRAFTDET_1_L','LTF_RETX1_GRAFTDET_2_L','LTF_RETX1_GRAFTDET_3_L','LTF_RETX1_GRAFTDET_4_L','LTF_RETX2_GRAFTDET_1_L','LTF_RETX2_GRAFTDET_2_L','LTF_RETX2_GRAFTDET_3_L','LTF_RETX2_GRAFTDET_4_L','LTF_RETX3_GRAFTDET_1_L','LTF_RETX3_GRAFTDET_2_L','LTF_RETX3_GRAFTDET_3_L','LTF_RETX3_GRAFTDET_4_L','LTF_S_MANDATORY_COMP','S_FWP_SUBMIT_WO_VALIDATION')
+
+ltf_factorVars = c('LTF_CONTACT','LTF_STATUS','LTF_MORTCAUSE','LTF_ASA','LTF_P2Y','LTF_ANTICOAG','LTF_BETABLOCKER','LTF_STATIN','LTF_ACE','LTF_FUNCSTATUS','LTF_DIALYSIS','LTF_TRTREQ','LTF_GRAFTLIMBSOCC','LTF_RENALENC','LTF_NUMNEWINT','LTF_RETX1_DC_STATUS','LTF_RETX1_MORTCAUSE','LTF_RETX1_NUMDEV','LTF_RETX1_DEVLOC_1','LTF_RETX1_DEVLOC_2','LTF_RETX1_DEVLOC_3','LTF_RETX1_DEVLOC_4','LTF_RETX1_DISTALEND_1','LTF_RETX1_DISTALEND_2','LTF_RETX1_DISTALEND_3','LTF_RETX1_DISTALEND_4','LTF_S_RETX1_ANCHORS_USED','LTF_RETX1_EMBOROUTE','LTF_RETX1_ABSURGROUTE','LTF_RETX1_ENDOGRAFTREP','LTF_RETX1_GRAFTOCC','LTF_RETX1_STENO','LTF_RETX2_DC_STATUS','LTF_RETX2_MORTCAUSE','LTF_RETX2_NUMDEV','LTF_RETX2_DEVLOC_1','LTF_RETX2_DEVLOC_2','LTF_RETX2_DEVLOC_3','LTF_RETX2_DEVLOC_4','LTF_RETX2_DISTALEND_1','LTF_RETX2_DISTALEND_2','LTF_RETX2_DISTALEND_3','LTF_RETX2_DISTALEND_4','LTF_S_RETX2_ANCHORS_USED','LTF_RETX2_EMBOROUTE','LTF_RETX2_ABSURGROUTE','LTF_RETX2_ENDOGRAFTREP','LTF_RETX2_GRAFTOCC','LTF_RETX2_STENO','LTF_RETX3_DC_STATUS','LTF_RETX3_MORTCAUSE','LTF_RETX3_NUMDEV','LTF_RETX3_DEVLOC_1','LTF_RETX3_DEVLOC_2','LTF_RETX3_DEVLOC_3','LTF_RETX3_DEVLOC_4','LTF_RETX3_DISTALEND_1','LTF_RETX3_DISTALEND_2','LTF_RETX3_DISTALEND_3','LTF_RETX3_DISTALEND_4','LTF_S_RETX3_ANCHORS_USED','LTF_RETX3_EMBOROUTE','LTF_RETX3_ABSURGROUTE','LTF_RETX3_ENDOGRAFTREP','LTF_RETX3_GRAFTOCC','LTF_RETX3_STENO','IDE_OTHER','LTF_COVID_STATUS','FWP_TIMEPOINT','D30_MORTCAUSE','COVID_STATUS_30D','D30_ADMIT_SINCE_DISC','D30_ADMISSION_LOC','D30_ADMISSION_REASON','D30_SSI')
+
+ltf_logicalVars = c('DEAD','LTF_R_CONVTOOPEN','LTF_SMOKING','LTF_R_CONV_MIGRATION','LTF_R_CONV_SYMPRUPTURE','LTF_R_CONV_SACGROWTH','LTF_R_CONV_ENDOLEAK','LTF_R_CONV_INFECT','LTF_R_OTHEROP','LTF_SITECOMP','LTF_COMP_1','LTF_COMP_2','LTF_COMP_3','LTF_COMP_4','LTF_IMAGING_0','LTF_IMAGING_1','LTF_IMAGING_2','LTF_IMAGING_3','LTF_IMAGING_4','LTF_IMAGING_5','LTF_IMAGING_6','LTF_IMAGING_7','LTF_ENDOLEAK_0','LTF_ENDOLEAK_1','LTF_R_ENDOLEAK_10','LTF_R_ENDOLEAK_11','LTF_R_ENDOLEAK_12','LTF_ENDOLEAK_2','LTF_ENDOLEAK_3','LTF_ENDOLEAK_4','LTF_ENDOLEAK_5','LTF_ENDOLEAK_6','LTF_ENDOLEAK_7','LTF_ENDOLEAK_8','LTF_ENDOLEAK_9','LTF_RETX1_INDICATION_1','LTF_RETX1_INDICATION_2','LTF_RETX1_INDICATION_3','LTF_RETX1_INDICATION_4','LTF_RETX1_INDICATION_5','LTF_RETX1_INDICATION_6','LTF_RETX1_INDICATION_7','LTF_RETX1_INDICATION_8','LTF_RETX1_ENDOLEAKTRT_1','LTF_RETX1_ENDOLEAKTRT_2','LTF_RETX1_ENDOLEAKTRT_3','LTF_RETX1_ENDOLEAKTRT_4','LTF_RETX1_ENDOLEAKTRT_5','LTF_RETX1_ENDOLEAKTRT_6','LTF_RETX1_ENDOLEAKTRT_7','LTF_RETX1_ENDOLEAKTRT_8','LTF_RETX1_ENDOLEAKRES','LTF_RETX1_TRTTYPE_1','LTF_RETX1_TRTTYPE_2','LTF_RETX1_TRTTYPE_3','LTF_RETX1_TRTTYPE_4','LTF_RETX1_TRTTYPE_5','LTF_RETX1_TRTTYPE_6','LTF_RETX1_TRTTYPE_7','LTF_RETX1_BALLOON_1','LTF_RETX1_BALLOON_2','LTF_RETX1_BALLOON_3','LTF_RETX1_BALLOON_4','LTF_RETX1_EMBOLOC_1','LTF_RETX1_EMBOLOC_2','LTF_RETX1_EMBOLOC_3','LTF_RETX1_EMBOLOC_4','LTF_RETX1_EMBOMETHOD_1','LTF_RETX1_EMBOMETHOD_2','LTF_RETX1_EMBOMETHOD_3','LTF_RETX1_EMBOMETHOD_4','LTF_RETX1_EMBOMETHOD_5','LTF_RETX1_EMBOMETHOD_6','LTF_RETX1_SURGTYPE_1','LTF_RETX1_SURGTYPE_2','LTF_RETX1_SURGTYPE_3','LTF_RETX1_LIGATED_1','LTF_RETX1_LIGATED_2','LTF_RETX1_LIGATED_3','LTF_RETX1_LIGATED_4','LTF_RETX1_SACOPEN','LTF_RETX1_OCCTRT_1','LTF_RETX1_OCCTRT_2','LTF_RETX1_OCCTRT_3','LTF_RETX1_OCCTRT_4','LTF_RETX1_OCCTRT_5','LTF_RETX1_OCCTRT_6','LTF_RETX1_OCCTRT_7','LTF_RETX1_OCCTRT_8','LTF_RETX1_STENOTRT_1','LTF_RETX1_STENOTRT_2','LTF_RETX1_STENOTRT_3','LTF_RETX1_STENOTRT_4','LTF_RETX1_STENOTRT_5','LTF_RETX2_INDICATION_1','LTF_RETX2_INDICATION_2','LTF_RETX2_INDICATION_3','LTF_RETX2_INDICATION_4','LTF_RETX2_INDICATION_5','LTF_RETX2_INDICATION_6','LTF_RETX2_INDICATION_7','LTF_RETX2_INDICATION_8','LTF_RETX2_ENDOLEAKTRT_1','LTF_RETX2_ENDOLEAKTRT_2','LTF_RETX2_ENDOLEAKTRT_3','LTF_RETX2_ENDOLEAKTRT_4','LTF_RETX2_ENDOLEAKTRT_5','LTF_RETX2_ENDOLEAKTRT_6','LTF_RETX2_ENDOLEAKTRT_7','LTF_RETX2_ENDOLEAKTRT_8','LTF_RETX2_ENDOLEAKRES','LTF_RETX2_TRTTYPE_1','LTF_RETX2_TRTTYPE_2','LTF_RETX2_TRTTYPE_3','LTF_RETX2_TRTTYPE_4','LTF_RETX2_TRTTYPE_5','LTF_RETX2_TRTTYPE_6','LTF_RETX2_TRTTYPE_7','LTF_RETX2_BALLOON_1','LTF_RETX2_BALLOON_2','LTF_RETX2_BALLOON_3','LTF_RETX2_BALLOON_4','LTF_RETX2_EMBOLOC_1','LTF_RETX2_EMBOLOC_2','LTF_RETX2_EMBOLOC_3','LTF_RETX2_EMBOLOC_4','LTF_RETX2_EMBOMETHOD_1')
+
+ltf_logicalVars2 = c('LTF_RETX2_EMBOMETHOD_2','LTF_RETX2_EMBOMETHOD_3','LTF_RETX2_EMBOMETHOD_4','LTF_RETX2_EMBOMETHOD_5','LTF_RETX2_EMBOMETHOD_6','LTF_RETX2_SURGTYPE_1','LTF_RETX2_SURGTYPE_2','LTF_RETX2_SURGTYPE_3','LTF_RETX2_LIGATED_1','LTF_RETX2_LIGATED_2','LTF_RETX2_LIGATED_3','LTF_RETX2_LIGATED_4','LTF_RETX2_SACOPEN','LTF_RETX2_OCCTRT_1','LTF_RETX2_OCCTRT_2','LTF_RETX2_OCCTRT_3','LTF_RETX2_OCCTRT_4','LTF_RETX2_OCCTRT_5','LTF_RETX2_OCCTRT_6','LTF_RETX2_OCCTRT_7','LTF_RETX2_OCCTRT_8','LTF_RETX2_STENOTRT_1','LTF_RETX2_STENOTRT_2','LTF_RETX2_STENOTRT_3','LTF_RETX2_STENOTRT_4','LTF_RETX2_STENOTRT_5','LTF_RETX3_INDICATION_1','LTF_RETX3_INDICATION_2','LTF_RETX3_INDICATION_3','LTF_RETX3_INDICATION_4','LTF_RETX3_INDICATION_5','LTF_RETX3_INDICATION_6','LTF_RETX3_INDICATION_7','LTF_RETX3_INDICATION_8','LTF_RETX3_ENDOLEAKTRT_1','LTF_RETX3_ENDOLEAKTRT_2','LTF_RETX3_ENDOLEAKTRT_3','LTF_RETX3_ENDOLEAKTRT_4','LTF_RETX3_ENDOLEAKTRT_5','LTF_RETX3_ENDOLEAKTRT_6','LTF_RETX3_ENDOLEAKTRT_7','LTF_RETX3_ENDOLEAKTRT_8','LTF_RETX3_ENDOLEAKRES','LTF_RETX3_TRTTYPE_1','LTF_RETX3_TRTTYPE_2','LTF_RETX3_TRTTYPE_3','LTF_RETX3_TRTTYPE_4','LTF_RETX3_TRTTYPE_5','LTF_RETX3_TRTTYPE_6','LTF_RETX3_TRTTYPE_7','LTF_RETX3_BALLOON_1','LTF_RETX3_BALLOON_2','LTF_RETX3_BALLOON_3','LTF_RETX3_BALLOON_4','LTF_RETX3_EMBOLOC_1','LTF_RETX3_EMBOLOC_2','LTF_RETX3_EMBOLOC_3','LTF_RETX3_EMBOLOC_4','LTF_RETX3_EMBOMETHOD_1','LTF_RETX3_EMBOMETHOD_2','LTF_RETX3_EMBOMETHOD_3','LTF_RETX3_EMBOMETHOD_4','LTF_RETX3_EMBOMETHOD_5','LTF_RETX3_EMBOMETHOD_6','LTF_RETX3_SURGTYPE_1','LTF_RETX3_SURGTYPE_2','LTF_RETX3_SURGTYPE_3','LTF_RETX3_LIGATED_1','LTF_RETX3_LIGATED_2','LTF_RETX3_LIGATED_3','LTF_RETX3_LIGATED_4','LTF_RETX3_SACOPEN','LTF_RETX3_OCCTRT_1','LTF_RETX3_OCCTRT_2','LTF_RETX3_OCCTRT_3','LTF_RETX3_OCCTRT_4','LTF_RETX3_OCCTRT_5','LTF_RETX3_OCCTRT_6','LTF_RETX3_OCCTRT_7','LTF_RETX3_OCCTRT_8','LTF_RETX3_STENOTRT_1','LTF_RETX3_STENOTRT_2','LTF_RETX3_STENOTRT_3','LTF_RETX3_STENOTRT_4','LTF_RETX3_STENOTRT_5','D30_RETX_REOP_RELATED','D30_OTHERINF_CLABSI','D30_OTHERINF_SEPSIS','D30_OTHERINF_OTHER','D30_WOUNDCOMP_NECROSIS','D30_WOUNDCOMP_HEMATOMA','D30_WOUNDCOMP_SEROMA','D30_WOUNDCOMP_LYMPH_LEAK','D30_WOUNDCOMP_DEHISCENCE','D30_WOUNDCOMP_OTHER','D30_CARDCOMP_AMI','D30_CARDCOMP_HEART_FAILURE','D30_CARDCOMP_OTHER','D30_VASCCOMP_TREATED_ART_THROM','D30_VASCCOMP_DISTAL_ART_EMBO','D30_VASCCOMP_BLEEDING','D30_VASCCOMP_SWELLING_WO_DVT','D30_VASCCOMP_OTHER','D30_VTECOMP_DVT','D30_VTECOMP_PE','D30_VTECOMP_OTHER','D30_RESPCOMP_PNEUMONIA','D30_RESPCOMP_COPD','D30_RESPCOMP_OTHER','D30_CNSCOMP_TIA','D30_CNSCOMP_STROKE','D30_CNSCOMP_OTHER','D30_RENALCOMP_UTI','D30_RENALCOMP_UROSPESIS','D30_RENALCOMP_ACUTE_RENAL_FAIL','D30_RENALCOMP_OTHER','D30_GICOMP_INTESTINAL_ISCHEMIA','D30_GICOMP_NAUSEA_VOMITING','D30_GICOMP_DIARRHEA','D30_GICOMP_C_DIFF','D30_GICOMP_OTHER')
+
+#Correct Date formats
+evar_ltf <- evar_ltf %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+evar_ltf <- evar_ltf %>%
+  mutate(across(contains('_DATE'), ~mdy(.)))
+
+#apply data types
+evar_ltf[ltf_numVars] <- lapply(evar_ltf[ltf_numVars], as.numeric)
+evar_ltf[ltf_charVars] <- lapply(evar_ltf[ltf_charVars], as.character)
+evar_ltf[ltf_logicalVars] <- lapply(evar_ltf[ltf_logicalVars], as.logical)
+evar_ltf[ltf_logicalVars2] <- lapply(evar_ltf[ltf_logicalVars2], as.logical)
+evar_ltf[ltf_factorVars] <- lapply(evar_ltf[ltf_factorVars], as.factor)
+
+ltf_retired <- c('LTF_R_CONVTOOPEN','LTF_R_CONV_MIGRATION','LTF_R_CONV_SYMPRUPTURE','LTF_R_CONV_SACGROWTH','LTF_R_CONV_ENDOLEAK','LTF_R_CONV_INFECT','LTF_R_OTHEROP','LTF_R_ENDOLEAK_10','LTF_R_ENDOLEAK_11','LTF_R_ENDOLEAK_12')
+
+evar_ltf <- evar_ltf %>%
+  select(-all_of(ltf_retired))
+#376 vars
+
+################################ Recode Factors ################################ 
+#evar_ltf$factor_varname <- factor(evar_ltf$VARNAME, labels = c('0','1','2','2'))
+
+evar_ltf$factor_ltf_contact <- factor(evar_ltf$LTF_CONTACT, labels = c('Face to face','Phone','No follow-up possible','Other source'))
+
+evar_ltf$factor_ltf_status <- factor(evar_ltf$LTF_STATUS, labels = c('Home','Nursing home','Dead','Homeless'))
+
+evar_ltf$factor_ltf_mortcause <- factor(evar_ltf$LTF_MORTCAUSE, labels = c('Related to disease or treatment','Unrelated to disease or treatment','Unsure'))
+
+evar_ltf$factor_ltf_asa <- factor(evar_ltf$LTF_ASA, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+evar_ltf$factor_ltf_p2y <- factor(evar_ltf$LTF_P2Y, labels = c('None','Clopidogrel','Prasugrel','Ticlopidine','Ticagrelor','Other','No, for medical reason','Non-compliant'))
+
+evar_ltf$factor_ltf_anticoag <- factor(evar_ltf$LTF_ANTICOAG, labels = c('None','Warfarin','Dabigatran','Rivaroxaban','Other','No, for medical reason','Non-compliant'))
+
+evar_ltf$factor_ltf_betablocker <- factor(evar_ltf$LTF_BETABLOCKER, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+                                  
+evar_ltf$factor_ltf_statin <- factor(evar_ltf$LTF_STATIN, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+evar_ltf$factor_ltf_ace <- factor(evar_ltf$LTF_ACE, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+evar_ltf$factor_ltf_funcstatus <- factor(evar_ltf$LTF_FUNCSTATUS, labels = c('Full','Light work','Self care','Assisted care','Bed bound'))
+
+evar_ltf$factor_ltf_dialysis <- factor(evar_ltf$LTF_DIALYSIS, labels = c('No','Functioning transplant','On dialysis'))
+                                         
+evar_ltf$factor_ltf_trtreq <- factor(evar_ltf$LTF_TRTREQ, labels = c('No','Medical Rx','Interventional Rx','Surgical Rx'))
+
+evar_ltf$factor_ltf_graftlimbsocc <- factor(evar_ltf$LTF_GRAFTLIMBSOCC, labels = c('No','Right occluded','Left occluded','Bilat occluded'))
+
+evar_ltf$factor_ltf_renalenc <- factor(evar_ltf$LTF_RENALENC, labels = c('No','Stenosis, not treated','Stenosis treated interventionally','Stenosis, bypassed','Occlusion not treated','Occlusion treated interventionally','Occlusion, bypassed'))
+
+evar_ltf$factor_ltf_numnewint <- factor(evar_ltf$LTF_NUMNEWINT, labels = c('None','1','2','3'))
+
+evar_ltf$factor_ltf_retx1_dc_status <- factor(evar_ltf$LTF_RETX1_DC_STATUS, labels = c('Home','Rehab unit','Nursing home','Dead','Other hospital','Homeless'))
+
+evar_ltf$factor_ltf_retx1_mortcause <- factor(evar_ltf$LTF_RETX1_MORTCAUSE, labels = c('Related to disease or treatment'))
+#,'Unrelated to disease or treatment','Unsure'))
+
+evar_ltf$factor_ltf_retx1_numdev <- factor(evar_ltf$LTF_RETX1_NUMDEV, labels = c('1','2','3','4'))
+                                           
+evar_ltf$factor_ltf_retx1_devloc_1 <- factor(evar_ltf$LTF_RETX1_DEVLOC_1, labels = c('Aorta','Right Limb','Left Limb'))
+
+evar_ltf$factor_ltf_retx1_devloc_2 <- factor(evar_ltf$LTF_RETX1_DEVLOC_2, labels = c('Aorta','Right Limb','Left Limb')) 
+
+evar_ltf$factor_ltf_retx1_devloc_3 <- factor(evar_ltf$LTF_RETX1_DEVLOC_3, labels = c('Aorta','Right Limb','Left Limb')) 
+
+#evar_ltf$factor_ltf_retx1_devloc_4 <- factor(evar_ltf$LTF_RETX1_DEVLOC_4, labels = c('Aorta','Right Limb','Left Limb')) 
+
+evar_ltf$factor_ltf_retx1_distalend_1 <- factor(evar_ltf$LTF_RETX1_DISTALEND_1, labels = c('Common','External','Internal','External and internal (branched)'))
+
+evar_ltf$factor_ltf_retx1_distalend_2 <- factor(evar_ltf$LTF_RETX1_DISTALEND_2, labels = c('Common','External','Internal','External and internal (branched)'))
+
+evar_ltf$factor_ltf_retx1_distalend_3 <- factor(evar_ltf$LTF_RETX1_DISTALEND_3, labels = c('Common','External','Internal','External and internal (branched)'))
+
+evar_ltf$factor_ltf_retx1_distalend_4 <- factor(evar_ltf$LTF_RETX1_DISTALEND_4, labels = c('Common'))
+#,'External','Internal','External and internal (branched)'))
+
+evar_ltf$factor_ltf_retx1_anchors_used <- factor(evar_ltf$LTF_S_RETX1_ANCHORS_USED , labels = c('Heli-FX','Other'))
+
+evar_ltf$factor_ltf_retx1_emboroute <- factor(evar_ltf$LTF_RETX1_EMBOROUTE, labels = c('Transarterial','Translumbar','Transcaval'))
+
+evar_ltf$factor_ltf_retx1_absurgroute <- factor(evar_ltf$LTF_RETX1_ABSURGROUTE, labels = c('Retroperitoneal'))
+#,'Transabdominal','Laparoscopic'))
+
+#evar_ltf$factor_ltf_retx1_endograftrep <- factor(evar_ltf$LTF_RETX1_ENDOGRAFTREP, labels = c('Replace proximal endograft','Replace distal endograft','Replace entire endograft'))
+
+evar_ltf$factor_ltf_retx1_graftocc <- factor(evar_ltf$LTF_RETX1_GRAFTOCC, labels = c('Right','Left','Both'))
+
+evar_ltf$factor_ltf_retx1_steno <- factor(evar_ltf$LTF_RETX1_STENO, labels = c('Right','Left','Both'))
+                                          
+evar_ltf$factor_ltf_retx2_dc_status <- factor(evar_ltf$LTF_RETX2_DC_STATUS, labels = c('Home','Rehab unit','Nursing home','Dead','Other hospital','Homeless'))
+
+evar_ltf$factor_ltf_retx2_mortcause <- factor(evar_ltf$LTF_RETX2_MORTCAUSE, labels = c('Related to disease or treatment'))
+#,'Unrelated to disease or treatment','Unsure'))
+
+evar_ltf$factor_ltf_retx2_numdev <- factor(evar_ltf$LTF_RETX2_NUMDEV, labels = c('1','2','3'))
+#,'4'))
+
+evar_ltf$factor_ltf_retx2_devloc_1 <- factor(evar_ltf$LTF_RETX2_DEVLOC_1, labels = c('Aorta','Right Limb','Left Limb'))
+
+evar_ltf$factor_ltf_retx2_devloc_2 <- factor(evar_ltf$LTF_RETX2_DEVLOC_2, labels = c('Aorta','Right Limb','Left Limb'))
+
+evar_ltf$factor_ltf_retx2_devloc_3 <- factor(evar_ltf$LTF_RETX2_DEVLOC_3, labels = c('Aorta','Right Limb','Left Limb'))
+
+#evar_ltf$factor_ltf_retx2_devloc_4 <- factor(evar_ltf$LTF_RETX2_DEVLOC_4, labels = c('Aorta','Right Limb','Left Limb')) 
+
+#evar_ltf$factor_ltf_retx2_distalend_1 <- factor(evar_ltf$LTF_RETX2_DISTALEND_1, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx2_distalend_2 <- factor(evar_ltf$LTF_RETX2_DISTALEND_2, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx2_distalend_3 <- factor(evar_ltf$LTF_RETX2_DISTALEND_3, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx2_distalend_4 <- factor(evar_ltf$LTF_RETX2_DISTALEND_4, labels = c('Common'))
+#,'External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx2_anchors_used <- factor(evar_ltf$LTF_S_RETX2_ANCHORS_USED , labels = c('Heli-FX'))
+#,'Other'))
+
+#evar_ltf$factor_ltf_retx2_emboroute <- factor(evar_ltf$LTF_RETX2_EMBOROUTE, labels = c('Transarterial','Translumbar','Transcaval'))
+
+#evar_ltf$factor_ltf_retx2_absurgroute <- factor(evar_ltf$LTF_RETX2_ABSURGROUTE, labels = c('Retroperitoneal'#)),'Transabdominal','Laparoscopic'))
+
+#evar_ltf$factor_ltf_retx2_endograftrep <- factor(evar_ltf$LTF_RETX2_ENDOGRAFTREP, labels = c('Replace proximal endograft','Replace distal endograft','Replace entire endograft'))
+
+#evar_ltf$factor_ltf_retx2_graftocc <- factor(evar_ltf$LTF_RETX2_GRAFTOCC, labels = c('Right','Left','Both'))
+
+#evar_ltf$factor_ltf_retx2_steno <- factor(evar_ltf$LTF_RETX2_STENO, labels = c('Right','Left','Both'))
+
+#evar_ltf$factor_ltf_retx3_dc_status <- factor(evar_ltf$LTF_RETX3_DC_STATUS, labels = c('Home','Rehab unit','Nursing home','Dead','Other hospital','Homeless'))
+
+#evar_ltf$factor_ltf_retx3_mortcause <- factor(evar_ltf$LTF_RETX3_MORTCAUSE, labels = c('Related to disease or treatment'))
+#,'Unrelated to disease or treatment','Unsure'))
+
+#evar_ltf$factor_ltf_retx3_numdev <- factor(evar_ltf$LTF_RETX3_NUMDEV, labels = c('1','2','3','4'))
+
+#evar_ltf$factor_ltf_retx3_devloc_1 <- factor(evar_ltf$LTF_RETX3_DEVLOC_1, labels = c('Aorta','Right Limb','Left Limb'))
+
+#evar_ltf$factor_ltf_retx3_devloc_2 <- factor(evar_ltf$LTF_RETX3_DEVLOC_2, labels = c('Aorta','Right Limb','Left Limb')) 
+
+#evar_ltf$factor_ltf_retx3_devloc_3 <- factor(evar_ltf$LTF_RETX3_DEVLOC_3, labels = c('Aorta','Right Limb','Left Limb')) 
+
+#evar_ltf$factor_ltf_retx3_devloc_4 <- factor(evar_ltf$LTF_RETX3_DEVLOC_4, labels = c('Aorta','Right Limb','Left Limb')) 
+
+#evar_ltf$factor_ltf_retx3_distalend_1 <- factor(evar_ltf$LTF_RETX3_DISTALEND_1, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx3_distalend_2 <- factor(evar_ltf$LTF_RETX3_DISTALEND_2, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx3_distalend_3 <- factor(evar_ltf$LTF_RETX3_DISTALEND_3, labels = c('Common','External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx3_distalend_4 <- factor(evar_ltf$LTF_RETX3_DISTALEND_4, labels = c('Common'))
+#,'External','Internal','External and internal (branched)'))
+
+#evar_ltf$factor_ltf_retx3_anchors_used <- factor(evar_ltf$LTF_S_RETX3_ANCHORS_USED , labels = c('Heli-FX','Other'))
+
+#evar_ltf$factor_ltf_retx3_emboroute <- factor(evar_ltf$LTF_RETX3_EMBOROUTE, labels = c('Transarterial','Translumbar','Transcaval'))
+
+#evar_ltf$factor_ltf_retx3_absurgroute <- factor(evar_ltf$LTF_RETX3_ABSURGROUTE, labels = c('Retroperitoneal','Transabdominal','Laparoscopic'))
+
+#evar_ltf$factor_ltf_retx3_endograftrep <- factor(evar_ltf$LTF_RETX3_ENDOGRAFTREP, labels = c('Replace proximal endograft','Replace distal endograft','Replace entire endograft'))
+
+#evar_ltf$factor_ltf_retx3_graftocc <- factor(evar_ltf$LTF_RETX3_GRAFTOCC, labels = c('Right','Left','Both'))
+
+#evar_ltf$factor_ltf_retx3_steno <- factor(evar_ltf$LTF_RETX3_STENO, labels = c('Right','Left','Both'))
+
+evar_ltf$factor_ltf_covid_status_30d <- factor(evar_ltf$COVID_STATUS_30D, labels = c('Never tested, no symptoms','Never tested, but had symptoms','Interval test positive with no current symptoms','Interval test positive with active symptoms','Interval test negative with no current symptoms','Interval test negative with active symptoms','Unknown'))
+
+evar_ltf$factor_ltf_d30_admit_since_dc <- factor(evar_ltf$D30_ADMIT_SINCE_DISC, labels = c('No','Yes, Unplanned, related to procedure','Yes, Unplanned, unrelated to the procedure','Yes, Planned, related to procedure','Yes, Planned, unrelated to procedure'))
+
+evar_ltf$factor_ltf_d30_admission_loc<- factor(evar_ltf$D30_ADMISSION_LOC, labels = c('Same site as procedure','Different site than procedure'))
+
+evar_ltf$factor_ltf_d30_readmission_reason<- factor(evar_ltf$D30_ADMISSION_REASON, labels = c('Surgical Site Infection','Other infection', 'Wound complication','Cardiac complication','Vascular complication','VTE complication','Respiratory complication','CNS complication','Renal complication','GI complication','Other'))
+
+evar_ltf$factor_ltf_d30_ssi<- factor(evar_ltf$D30_SSI, labels = c('Superficial'))#,'Deep','Organ Space'
+
+evar_ltf$factor_ltf_d30_mortcause<- factor(evar_ltf$D30_MORTCAUSE, labels = c('Related to disease or treatment','Unrelated to disease or treatment','Unsure'))
+
+evar_ltf$factor_ltf_IDE_Other<- factor(evar_ltf$IDE_OTHER, labels = c('No IDE or Other device','IDE Device','Other Device'))
+
+evar_ltf$factor_ltf_COVID_STATUS<- factor(evar_ltf$LTF_COVID_STATUS, labels = c('Never tested, no symptoms','Never tested, but had symptoms','Interval test positive with no current symptoms','Interval test positive with active symptoms','Interval test negative with no current symptoms','Interval test negative with active symptoms','Unknown'))
+
+evar_ltf$factor_ltf_COVID_STATUS_30D<- factor(evar_ltf$COVID_STATUS_30D, labels = c('Never tested, no symptoms','Never tested, but had symptoms','Interval test positive with no current symptoms','Interval test positive with active symptoms','Interval test negative with no current symptoms','Interval test negative with active symptoms','Unknown'))
+
+############################ Remove retired and converted variables###########
+ltf_converted_factors <- c('LTF_CREATININE_UMOLL','LTF_CONTACT','LTF_STATUS','LTF_MORTCAUSE','LTF_ASA','LTF_P2Y','LTF_ANTICOAG','LTF_BETABLOCKER','LTF_STATIN','LTF_ACE','LTF_FUNCSTATUS','LTF_DIALYSIS','LTF_CREATININE_UMOLL','LTF_TRTREQ','LTF_GRAFTLIMBSOCC','LTF_RENALENC','LTF_NUMNEWINT','LTF_RETX1_DC_STATUS','LTF_RETX1_MORTCAUSE','LTF_RETX1_NUMDEV','LTF_RETX1_DEVLOC_1','LTF_RETX1_DEVLOC_2','LTF_RETX1_DEVLOC_3','LTF_RETX1_DISTALEND_1','LTF_RETX1_DISTALEND_2','LTF_RETX1_DISTALEND_3','LTF_RETX1_DISTALEND_4','LTF_RETX1_EMBOROUTE','LTF_RETX1_ABSURGROUTE','LTF_RETX1_GRAFTOCC','LTF_RETX1_STENO','LTF_RETX2_DC_STATUS','LTF_RETX2_MORTCAUSE','LTF_RETX2_NUMDEV','LTF_RETX2_DEVLOC_1','LTF_RETX2_DEVLOC_2','LTF_RETX2_DEVLOC_3','IDE_OTHER','LTF_COVID_STATUS','D30_MORTCAUSE','COVID_STATUS_30D','D30_ADMIT_SINCE_DISC','D30_ADMISSION_LOC','D30_ADMISSION_REASON','D30_SSI','factor_ltf_COVID_STATUS_30D')
+#LTF_S_RETX2_ANCHORS_USED
+evar_ltf_final <- evar_ltf %>%
+  select(-all_of(ltf_converted_factors))
+
+################################ Final Dataset ################################
+evar_ltf_final <- evar_ltf_final %>%
+  group_by(PRIMPROCID) %>%
+  arrange(desc(LTF_DAYS)) %>%
+  mutate(ltf_number = row_number()) %>%
+  ungroup() %>%
+  filter(ltf_number == 1)
+
+evar_full <- left_join(evar_proc_final, evar_ltf_final, by = 'PRIMPROCID', suffix = c('.proc', '.ltf'))
+
+write_rds(evar_full, 'output/evar_full.rds')
+
+rm(list = ls())
