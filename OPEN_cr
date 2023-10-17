@@ -1,0 +1,324 @@
+############################### Import Libraries ###############################
+library(tidyverse)
+
+############################## Import Proc Data ################################
+aaa_proc <- read_csv('input/OPEN_PROC_20230201.csv')
+#133 vars
+
+aaa_proc <- #remove retired variables
+  aaa_proc %>%
+  select(PATIENTID,PRIMPROCID,DEAD,PROC_SURVIVALDAYS,REGIONID,CENTERID,PHYSICIANID,SURGWEEKDAY,TOTAL_LOS,POSTOP_LOS,GENDER,DC_STATUS,RACE,HTCM,WTKG,PRIMARYINSURER,ETHNICITY,AGE,TRANSFER,PREOP_SMOKING,HTN,DIABETES,PRIOR_CAD,PRIOR_CABG,PRIOR_PCI,PRIOR_CHF,COPD,DIALYSIS,PREOP_CREAT,STRESS,LIVINGSTATUS,QUIT_SMKG_DAYS,PREOP_AMBUL,ASACLASS,HEMO,PRIOR_BYPASS,PRIOR_CEACAS,ANEURREP,PRIOR_PTASTENT,PRIOR_MAJAMP,PREOP_ASA,PREOP_P2Y,PREOP_STATIN,PREOP_BETABLOCKER,PREOP_ACE,PREOP_ANTICOAG,PRIOR_AORSURG,PREOP_EF,MAXAAADIA,ILIACANEUR,MAXIADIA,MINPREINTUBBP,MENTSTATUS,CARREST,TIME_SYMPTOINCIS,TIME_ADMTOINCIS,DCLOSURE,ANESTHESIA,CONVFROMENDO,RENVISTIME,EXP,DISTANAST,GRFTTYPE,HYPOOCC,PROXCLAMP,IMAATCOMP,EBL,PRIOR_FAMAAA,GBODYDIA,CCTHROMB,URGENCY,HEPARIN,CRPERFUSION,MANNITOL,CRYSTAL,AUTOTXF,PRBC,TOTALPROCTIME,SKINPREP,CCRENAL,CCBYPASS,CCOTHERAB,EXTUB,VASO,ICUSTAY,TXFUSION,POSTOP_MI,POSTOP_DYSRHYTHMIA,POSTOP_CHF,RESPIRATORY,POSTOP_RENAL,POSTOP_LEGISCH,BOWELISCH,WCOMP,RTOR,RTORBLEED,POSTOP_STROKE,ABX,ABX_START,ABX_STOP,DC_ASA,DC_STATIN,DC_P2Y,DC_BETABLOCKER,DC_ACE,DC_ANTICOAG,LTF_CALC,SURGERY_DT,S_SSN_INDICATOR,S_SUBMIT_WO_VALIDATION,S_PATIENT_ZIPCODE,S_CENTER_ZIPCODE,S_CREATED_DT,S_UPDATED_DT,S_CENTER_STATE)
+#115 vars
+
+############################### Proc Data Types ################################
+numVars <- c("PROC_SURVIVALDAYS","TOTAL_LOS","POSTOP_LOS","HTCM","WTKG","AGE","QUIT_SMKG_DAYS","HEMO","MAXAAADIA","MAXIADIA","MINPREINTUBBP","TIME_SYMPTOINCIS","TIME_ADMTOINCIS","RENVISTIME","EBL","GBODYDIA","CRYSTAL","AUTOTXF","PRBC","TOTALPROCTIME","ICUSTAY","TXFUSION","PREOP_CREAT")
+
+charVars <- c("PATIENTID","PRIMPROCID","REGIONID","CENTERID","PHYSICIANID","S_SSN_INDICATOR","S_SUBMIT_WO_VALIDATION","S_PATIENT_ZIPCODE","S_CENTER_ZIPCODE","S_CENTER_STATE")
+
+factorVars <- c("SURGWEEKDAY","GENDER","DC_STATUS","RACE","PRIMARYINSURER","TRANSFER","PREOP_SMOKING","HTN","DIABETES","PRIOR_CAD","PRIOR_CABG","PRIOR_PCI","PRIOR_CHF","COPD","DIALYSIS","STRESS","LIVINGSTATUS","PREOP_AMBUL","ASACLASS","PRIOR_MAJAMP","PREOP_ASA","PREOP_P2Y","PREOP_STATIN","PREOP_BETABLOCKER","PREOP_ACE","PREOP_ANTICOAG","PRIOR_AORSURG","PREOP_EF","ILIACANEUR","MENTSTATUS","CARREST","ANESTHESIA","CONVFROMENDO","EXP","DISTANAST","GRFTTYPE","HYPOOCC","PROXCLAMP","IMAATCOMP","URGENCY","SKINPREP","EXTUB","POSTOP_MI","RESPIRATORY","POSTOP_RENAL","POSTOP_LEGISCH","BOWELISCH","WCOMP","RTOR","RTORBLEED","POSTOP_STROKE","ABX","ABX_START","ABX_STOP","DC_ASA","DC_STATIN","DC_P2Y","DC_BETABLOCKER","DC_ACE","DC_ANTICOAG","LTF_CALC")
+
+logicalVars <- c("DEAD","ETHNICITY","PRIOR_BYPASS","PRIOR_CEACAS","ANEURREP","PRIOR_PTASTENT","CARREST","DCLOSURE","PRIOR_FAMAAA","CCTHROMB","HEPARIN","CRPERFUSION","MANNITOL","CCRENAL","CCBYPASS","CCOTHERAB","VASO","POSTOP_DYSRHYTHMIA","POSTOP_CHF","RTOR","RTORBLEED")
+
+#Correct Date formats
+aaa_proc <- aaa_proc %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+#apply data types
+aaa_proc[numVars] <- lapply(aaa_proc[numVars], as.numeric)
+aaa_proc[charVars] <- lapply(aaa_proc[charVars], as.character)
+aaa_proc[logicalVars] <- lapply(aaa_proc[logicalVars], as.logical)
+aaa_proc[factorVars] <- lapply(aaa_proc[factorVars], as.factor)
+
+############################# Recode Proc factors ##############################
+aaa_proc$factor_race <- factor(aaa_proc$RACE, labels = c("American Indian or Alaskan Native","Asian","Black or African American","Native Hawaiian or other Pacific Islander","White","More than 1 race","Unknown / Other"))
+
+aaa_proc$factor_dc_status <- factor(aaa_proc$DC_STATUS, labels = c("Home","Rehab unit","Nursing home","Dead","Other hospital","Homeless"))
+
+aaa_proc$factor_surgweekday <- factor(aaa_proc$SURGWEEKDAY, labels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+aaa_proc$factor_gender <- factor(aaa_proc$GENDER, labels = c("Male", "Female"))
+
+aaa_proc$factor_primaryinsurer <- factor(aaa_proc$PRIMARYINSURER, labels = c("Medicare", "Medicaid", "Commercial", "Military/VA", "Non US insurance", "Self pay", "Medicare Advantage"))
+
+aaa_proc$factor_transfer <- factor(aaa_proc$TRANSFER, labels = c("No", "Hospital", "Rehab unit"))
+
+aaa_proc$factor_preop_smoking <- factor(aaa_proc$PREOP_SMOKING, labels = c("Never", "Prior", "Current"))
+
+aaa_proc$factor_htn <- factor(aaa_proc$HTN, labels = c("No", "Yes (>=140/90 or history - retired since 11/15/2016)", "Yes, controlled [added on 04/13/2020]", "Yes, uncontrolled [added on 04/13/2020]"))
+
+aaa_proc$factor_diabetes <- factor(aaa_proc$DIABETES, labels = c("None", "Diet", "Non-insulin meds", "Insulin"))
+
+aaa_proc$factor_prior_cad <- factor(aaa_proc$PRIOR_CAD, labels = c("None", "Hx MI but no sx", "Stable angina", "Unstable angina or MI < 6 mos (retired since 09/12/2012)", "MI < 6 mos", "Unstable angina"))
+
+aaa_proc$factor_prior_cabg <- factor(aaa_proc$PRIOR_CABG, labels = c("None", "<5yr ago", ">= 5yrs ago"))
+
+aaa_proc$factor_prior_pci <- factor(aaa_proc$PRIOR_PCI, labels = c("None", "<5yr ago", ">= 5yrs ago"))
+
+aaa_proc$factor_prior_chf <- factor(aaa_proc$PRIOR_CHF, labels = c("None", "Asymptomatic, hx only", "Mild" ,"Moderate CHF", "Severe CHF"))
+
+aaa_proc$factor_copd <- factor(aaa_proc$COPD, labels = c("No", "Not treated", "On meds", "On home oxygen"))
+
+aaa_proc$factor_dialysis <- factor(aaa_proc$DIALYSIS, labels = c("No", "Functioning transplant", "On dialysis"))
+
+aaa_proc$factor_stress <- factor(aaa_proc$STRESS, labels = c("Not done", "Normal", "Ischemia", "MI", "Ischemia and MI"))
+
+aaa_proc$factor_livingstatus <- factor(aaa_proc$LIVINGSTATUS, labels = c("Home", "Nursing home", "Homeless"))
+
+aaa_proc$factor_preop_ambul <- factor(aaa_proc$PREOP_AMBUL, labels = c("Ambulates", "Ambulates w/ assistance", "Wheelchair", "Bedridden"))
+
+aaa_proc$factor_asaclass <- factor(aaa_proc$ASACLASS, labels = c("healthy patient", "mild systemic disease", "severe systemic disease", "severe systemic disease that is a constant threat to life", "moribund - not expected to survive without the operation"))
+
+aaa_proc$factor_prior_majoramp <- factor(aaa_proc$PRIOR_MAJAMP, labels = c("No", "Yes (retired since 09/12/2012)", "BK/thru knee", "AK or higher"))
+
+aaa_proc$factor_preop_asa <- factor(aaa_proc$PREOP_ASA, labels = c("No", "Yes", "No, for medical reason"," Non-compliant"))
+
+aaa_proc$factor_preop_p2y <- factor(aaa_proc$PREOP_P2Y, labels = c("None", "Clopidogrel", "Prasugrel", "Ticlopidine", "Ticagrelor", "Other", "No, for medical reason", "Non-compliant"))
+
+aaa_proc$factor_preop_statin <- factor(aaa_proc$PREOP_STATIN, labels = c("No", "Yes","No, for medical reason","Non-compliant"))
+
+aaa_proc$factor_preop_betablocker <- factor(aaa_proc$PREOP_BETABLOCKER, labels = c("No","Pre-op 1-30 days","Chronic > 30 days","No, for medical reason","Op day only","Non-compliant"))
+
+aaa_proc$factor_preop_ace <- factor(aaa_proc$PREOP_ACE, labels = c("No","Yes","No, for medical reason","Non-compliant"))
+
+aaa_proc$factor_preop_anticoag <- factor(aaa_proc$PREOP_ANTICOAG, labels = c("None","Warfarin","Dabigatran","Rivaroxaban","Other","No, for medical reason","Non-compliant"))
+
+aaa_proc$factor_aorsurg <- factor(aaa_proc$PRIOR_AORSURG, labels = c("None","AAA","SAAA","Bypass","EVAR","Other"))
+
+aaa_proc$factor_preop_ef <- factor(aaa_proc$PREOP_EF, labels = c("<30%","30-50%",">50%","Not done","Unknown"))
+
+aaa_proc$factor_iliacaneur <- factor(aaa_proc$ILIACANEUR, labels = c("No", "Unilateral", "Bilateral"))
+
+aaa_proc$factor_mentstatus <- factor(aaa_proc$MENTSTATUS, labels = c("Normal","Disoriented","Unconscious"))
+
+#aaa_proc$factor_covid_status <- factor(aaa_proc$S_COVID_STATUS, labels = c("Unknown, not tested","Tested negative pre-op","Tested positive pre-op","Tested negative pre-op but positive post-op"))
+
+#aaa_proc$factor_covid_symptoms <- factor(aaa_proc$S_COVID_SYMPTOMS, labels = c("Asymptomatic","Symptomatic, not intubated","Symptomatic, intubated"))
+
+#aaa_proc$factor_covid_delay <- factor(aaa_proc$S_COVID_DELAY, labels = c("None","Delayed < 2 weeks","Delayed 2-6 weeks","Delayed > 6 weeks","Uncertain"))
+
+#aaa_proc$factor_covid_delay_impact <- factor(aaa_proc$S_COVID_DELAY_IMPACT, labels = c("No impact in tx due to delay","Yes, impact of tx due to delay","Indeterminate"))
+
+aaa_proc$factor_anesthesia <- factor(aaa_proc$ANESTHESIA, labels = c("General","General + Epidural"))
+
+aaa_proc$factor_convfromendo <- factor(aaa_proc$CONVFROMENDO, labels = c("No","Early","Late"))
+
+aaa_proc$factor_exp <- factor(aaa_proc$EXP, labels = c("Anterior","Retroperitoneal"))
+
+aaa_proc$factor_distanast <- factor(aaa_proc$DISTANAST, labels = c("Aorta","CIA","EIA","CFA"))
+
+aaa_proc$factor_hypoocc <- factor(aaa_proc$HYPOOCC, labels = c("None","Single","Both"))
+
+aaa_proc$factor_proxclamp <- factor(aaa_proc$PROXCLAMP, labels = c("Infrarenal","Above One Renal","Above Both Renals","Supraceliac"))
+
+aaa_proc$factor_imaatcomp <- factor(aaa_proc$IMAATCOMP, labels = c("Occluded","Ligated","Reimplanted"))
+
+aaa_proc$factor_urgency <- factor(aaa_proc$URGENCY, labels = c("Elective","Symptomatic","Ruptured"))
+
+aaa_proc$factor_skinprep <- factor(aaa_proc$SKINPREP, labels = c("Chlorhexidine","Alcohol","Iodine","Chlor + iodine","Chlor + alcohol","Iodine + alcohol","All 3"))
+
+aaa_proc$factor_extub <- factor(aaa_proc$EXTUB, labels = c("In OR","<12 hrs",">=12 hrs (retired since 10/14/2010)","12-24 hrs",">24 hrs"))
+
+aaa_proc$factor_postop_mi <- factor(aaa_proc$POSTOP_MI, labels = c("No","Troponin only","EKG or clinical"))
+
+aaa_proc$factor_respiratory <- factor(aaa_proc$RESPIRATORY, labels = c("No","Pneumonia","Ventilator"))
+
+aaa_proc$factor_postop_renal <- factor(aaa_proc$POSTOP_RENAL, labels = c("None","Creat. Increase > 0.5 mg/dl (44.2 umol/L)","Temp. Dialysis","Perm. Dialysis"))
+
+aaa_proc$factor_postop_legisch <- factor(aaa_proc$POSTOP_LEGISCH, labels = c("No","Yes, rx w/o Surgery","Required Surgery","Amputation"))
+
+aaa_proc$factor_bowelisch <- factor(aaa_proc$BOWELISCH, labels = c("No","Medical Rx","Surgical Rx"))
+
+aaa_proc$factor_wcomp <- factor(aaa_proc$WCOMP, labels = c("No","Superficial Separation/Infection","Return to OR"))
+
+aaa_proc$factor_postop_stroke <- factor(aaa_proc$POSTOP_STROKE, labels = c("None","Minor","Major"))
+
+aaa_proc$factor_abx <- factor(aaa_proc$ABX, labels = c("No","Yes","No, for medical reason"))
+
+aaa_proc$factor_abx_start <- factor(aaa_proc$ABX_START, labels = c("No","Yes","No, for medical reason"))
+
+aaa_proc$factor_abx_stop <- factor(aaa_proc$ABX_STOP, labels = c("No","Yes","No, for medical reason"))
+
+aaa_proc$factor_dc_asa <- factor(aaa_proc$DC_ASA, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+aaa_proc$factor_dc_statin <- factor(aaa_proc$DC_STATIN, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+aaa_proc$factor_dc_p2y <- factor(aaa_proc$DC_P2Y, labels = c("None","Clopidogrel","Prasugrel","Ticagrelor","Other","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+aaa_proc$factor_dc_betablocker <- factor(aaa_proc$DC_BETABLOCKER, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+aaa_proc$factor_dc_ace <- factor(aaa_proc$DC_ACE, labels = c("No","Yes","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+aaa_proc$factor_dc_anticoag <- factor(aaa_proc$DC_ANTICOAG, labels = c("None","Warfarin","Dabigatran","Rivaroxaban","Other","No, for medical reason","Non-compliant (retired since 12/15/2014)"))
+
+aaa_proc$factor_ltf_calc <- factor(aaa_proc$LTF_CALC, labels = c("No","Yes","Exclude"))
+
+str(aaa_proc$SURGERY_DT)
+#170 vars
+
+############################### Final Proc Data ################################
+aaa_proc_final <- aaa_proc %>%
+  select(PATIENTID,PRIMPROCID,DEAD,PROC_SURVIVALDAYS,REGIONID,CENTERID,PHYSICIANID,factor_surgweekday,TOTAL_LOS,POSTOP_LOS,factor_gender,factor_dc_status,factor_race,HTCM,WTKG,factor_primaryinsurer,ETHNICITY,AGE,factor_transfer,factor_preop_smoking,factor_htn,factor_diabetes,factor_prior_cad,factor_prior_cabg,factor_prior_pci,factor_prior_chf,factor_copd,factor_dialysis,PREOP_CREAT,factor_stress,factor_livingstatus,QUIT_SMKG_DAYS,factor_preop_ambul,factor_asaclass,HEMO,PRIOR_BYPASS,PRIOR_CEACAS,ANEURREP,PRIOR_PTASTENT,factor_prior_majoramp,factor_preop_asa,factor_preop_p2y,factor_preop_statin,factor_preop_betablocker,factor_preop_ace,factor_preop_anticoag,factor_aorsurg,factor_preop_ef,MAXAAADIA,factor_iliacaneur,MINPREINTUBBP,factor_mentstatus,CARREST,TIME_SYMPTOINCIS,TIME_ADMTOINCIS,DCLOSURE,factor_anesthesia,factor_convfromendo,RENVISTIME,factor_exp,factor_distanast,factor_hypoocc,factor_proxclamp,factor_imaatcomp,EBL,PRIOR_FAMAAA,GBODYDIA,CCTHROMB,factor_urgency,HEPARIN,CRPERFUSION,MANNITOL,CRYSTAL,AUTOTXF,PRBC,TOTALPROCTIME,factor_skinprep,CCRENAL,CCBYPASS,CCOTHERAB,factor_extub,VASO,ICUSTAY,TXFUSION,factor_postop_mi,POSTOP_DYSRHYTHMIA,POSTOP_CHF,factor_respiratory,factor_postop_renal ,factor_postop_legisch,factor_bowelisch,factor_wcomp,RTOR,RTORBLEED,factor_postop_stroke,factor_abx,factor_abx_start,factor_abx_stop,factor_dc_asa,factor_dc_statin,factor_dc_p2y ,factor_dc_betablocker,factor_dc_ace,factor_dc_anticoag,factor_ltf_calc,SURGERY_DT,S_SSN_INDICATOR,S_SUBMIT_WO_VALIDATION,S_PATIENT_ZIPCODE,S_CENTER_ZIPCODE,S_CREATED_DT,S_UPDATED_DT,S_CENTER_STATE)
+#113 vars
+
+write_rds(aaa_proc_final, 'output/aaa_proc_final.rds')
+############################## Import LTF Data #################################
+aaa_ltf <- read_csv("input/OPEN_LTF_20220701.csv")
+
+################################ LTF Data Types ################################
+numVars = c("LTF_DAYS","PROC_SURVIVALDAYS","LTF_OAAASUB","30DAY_DAYS","30DAY_ADMIT_SINCE_DISC")
+
+charVars = c("CENTERID","PATIENTID","PRIMPROCID","LTF_ID")
+
+factorVars = c("LTF_CONTACT","LTF_STATUS","LTF_MORTCAUSE","LTF_ASA","LTF_P2Y","LTF_ANTICOAG","LTF_BETABLOCKER","LTF_STATIN","LTF_ACE","30D_MORTCAUSE","LTF_S_MANDATORY_COMP","S_FWP_SUBMIT_WO_VALIDATION")
+
+logicalVars = c("DEAD","LTF_SMOKING","LTF_INCISION","LTF_GRAFT","LTF_INTESTINE","LTF_LEGISCH","30DAY_CARDCOMP_1","30DAY_CARDCOMP_2","30DAY_CARDCOMP_3","30DAY_CNSCOMP_1","30DAY_CNSCOMP_2","30DAY_CNSCOMP_3","30DAY_GICOMP_1","30DAY_GICOMP_2","30DAY_GICOMP_3","30DAY_GICOMP_4","30DAY_GICOMP_5","30DAY_OTHERINF_1","30DAY_OTHERINF_2","30DAY_OTHERINF_3","30DAY_RELATED","30DAY_RENALCOMP_1","30DAY_RENALCOMP_2","30DAY_RENALCOMP_3","30DAY_RENALCOMP_4","30DAY_RESPCOMP_1","30DAY_RESPCOMP_2","30DAY_RESPCOMP_3","30DAY_VASCCOMP_1","30DAY_VASCCOMP_2","30DAY_VASCCOMP_3","30DAY_VASCCOMP_4","30DAY_VASCCOMP_5","30DAY_VTECOMP_1","30DAY_VTECOMP_2","30DAY_VTECOMP_3","30DAY_WOUNDCOMP_1","30DAY_WOUNDCOMP_2","30DAY_WOUNDCOMP_3","30DAY_WOUNDCOMP_4","30DAY_WOUNDCOMP_5","30DAY_WOUNDCOMP_6")
+
+#Correct Date formats
+aaa_ltf <- aaa_ltf %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+#apply data types
+aaa_ltf[numVars] <- lapply(aaa_ltf[numVars], as.numeric)
+aaa_ltf[charVars] <- lapply(aaa_ltf[charVars], as.character)
+aaa_ltf[logicalVars] <- lapply(aaa_ltf[logicalVars], as.logical)
+aaa_ltf[factorVars] <- lapply(aaa_ltf[factorVars], as.factor)
+
+############################# Rename LTF factors ##############################
+aaa_ltf <- aaa_ltf %>%
+  rename("Card30D_AMI" = `30DAY_CARDCOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Card30D_HF" = `30DAY_CARDCOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Card30D_Other" = `30DAY_CARDCOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("CNS30D_TIA" = `30DAY_CNSCOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("CNS30D_Stroke" = `30DAY_CNSCOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("CNS30D_ Other" = `30DAY_CNSCOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("GI30D_IntestinalIschemia" = `30DAY_GICOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("GI30D_NauseaVomiting" = `30DAY_GICOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("GI30D_Diarrhea" = `30DAY_GICOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("GI30D_CDiff" = `30DAY_GICOMP_4`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("GI30D_Other" = `30DAY_GICOMP_5`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Infectious30D_CLABSI" = `30DAY_OTHERINF_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Infectious30D_Sepsis" = `30DAY_OTHERINF_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Infectious30D_Other" = `30DAY_OTHERINF_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Reason 30D Admission" = `30DAY_REASON`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("RelatedReadmission_30D" = `30DAY_RELATED`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Renal30D_UTI" = `30DAY_RENALCOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Renal30D_Urosepsis" = `30DAY_RENALCOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Renal30D_ARF" = `30DAY_RENALCOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Renal30D_Other" = `30DAY_RENALCOMP_4`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Pulm30D_Pneumonia" = `30DAY_RESPCOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Pulm30D_COPD" = `30DAY_RESPCOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Pulm30D_Other" = `30DAY_RESPCOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("SSI_30D" = `30DAY_SITEINF`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Vasc30D_TreatedArteryThrombosis" = `30DAY_VASCCOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Vasc30D_DistalArteryEmbolization" = `30DAY_VASCCOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Vasc30D_Bleeding" = `30DAY_VASCCOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Vasc30D_SwellingNoDVT" = `30DAY_VASCCOMP_4`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Vasc30D_Other" = `30DAY_VASCCOMP_5`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("VTE30D_DVT" = `30DAY_VTECOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("VTE30D_PE" = `30DAY_VTECOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("VTE30D_Other" = `30DAY_VTECOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Wound30D_WoundNecrosis" = `30DAY_WOUNDCOMP_1`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Wound30D_Hematoma" = `30DAY_WOUNDCOMP_2`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Wound30D_Seroma" = `30DAY_WOUNDCOMP_3`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Wound30D_LymphLeak" = `30DAY_WOUNDCOMP_4`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Wound30D_Dehiscence" = `30DAY_WOUNDCOMP_5`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Wound30D_Other" = `30DAY_WOUNDCOMP_6`)
+
+aaa_ltf <- aaa_ltf %>%
+  rename("Cause30DMortality" = `30D_MORTCAUSE`)
+
+################################ Final Dataset ################################
+aaa_ltf <- aaa_ltf %>%
+  group_by(PRIMPROCID) %>%
+  arrange(desc(LTF_DAYS)) %>%
+  mutate(ltf_number = row_number()) %>%
+  ungroup() %>%
+  filter(ltf_number == 1) 
+
+aaa_full <- left_join(aaa_proc_final, aaa_ltf, by = "PRIMPROCID", suffix = c(".proc", ".ltf"))
+
+table(aaa_full$REGIONID, aaa_full$DEAD.proc)
+table(aaa_full$REGIONID, aaa_full$DEAD.ltf)
+
+write_rds(aaa_full, 'output/aaa_full.rds')
+
+aaa_full %>%
+  group_by(REGIONID)%>%
+  summarise(count = n(), periop_dead = (sum(DEAD.proc, na.rm = TRUE)/count)*100,long_dead = (sum(DEAD.ltf, na.rm = TRUE)/count)*100)
+
+write_rds(aaa_full, 'output/aaa_full.rds')
+rm(list = ls())
