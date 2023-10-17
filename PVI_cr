@@ -1,0 +1,582 @@
+############################### Import Libraries ###############################
+library(tidyverse)
+
+############################## Import Proc Data ################################
+#pvi_proc <- read_csv('input/PVI_PROC_20221101.csv')
+#693 vars 339368 obs 11/01/22
+
+pvi_proc <- read_csv('input/PVI_PROC_20230201.csv')
+#698 vars 353732 obs 02/01/23
+
+############################### Proc Data Types ################################
+numVars <- c('PROC_SURVIVALDAYS','COVID_VACCINE_DAYS','COVID_BOOSTER_DAYS','TOTAL_LOS','POSTOP_LOS','AGE','HTCM','WTKG','QUIT_SMKG_DAYS','PREOP_CREAT','PREOP_ABIR','PREOP_ABIL','PREOP_TOEPRESSURE_R','PREOP_TOEPRESSURE_L','LGSHEATH_1','LGSHEATH_2','FLUOROTIME','S_DAP','CONTRAST','TREATLEN_1','TREATLEN_2','TREATLEN_3','TREATLEN_4','OCCLEN_1','OCCLEN_2','OCCLEN_3','OCCLEN_4','S_OD_LENGTH_DEVICE_1','S_OD_LENGTH_DEVICE_4','S_OD_LENGTH_DEVICE_7','S_OD_LENGTH_DEVICE_10','S_OD_LENGTH_DEVICE_2','S_OD_LENGTH_DEVICE_5','S_OD_LENGTH_DEVICE_8','S_OD_LENGTH_DEVICE_11','S_OD_LENGTH_DEVICE_3','S_OD_LENGTH_DEVICE_6','S_OD_LENGTH_DEVICE_9','S_OD_LENGTH_DEVICE_12','MAXANEURDIA_1','MAXANEURDIA_2','MAXANEURDIA_3','MAXANEURDIA_4','TOTTREATLEN_1','TOTTREATLEN_2','TOTTREATLEN_3','TOTTREATLEN_4','S_A_DIA_DEVICE_1','S_A_DIA_DEVICE_4','S_A_DIA_DEVICE_7','S_A_DIA_DEVICE_10','S_A_LENGTH_DEVICE_1','S_A_LENGTH_DEVICE_4','S_A_LENGTH_DEVICE_7','S_A_LENGTH_DEVICE_10','S_A_DIA_DEVICE_2','S_A_DIA_DEVICE_5','S_A_DIA_DEVICE_8','S_A_DIA_DEVICE_11','S_A_LENGTH_DEVICE_2','S_A_LENGTH_DEVICE_5','S_A_LENGTH_DEVICE_8','S_A_LENGTH_DEVICE_11')
+
+charVars <- c('PATIENTID','PRIMPROCID','PHYSICIANID','REGIONID','CENTERID','S_SUBMIT_WO_VALIDATION','S_PATIENT_ZIPCODE','S_CENTER_ZIPCODE','S_CENTER_STATE','MECHTHROMB_OCC_1','MECHTHROMB_OCC_2','MECHTHROMB_OCC_3','MECHTHROMB_OCC_4','MECHTHROMB_ANEUR_1','MECHTHROMB_ANEUR_2','MECHTHROMB_ANEUR_3','MECHTHROMB_ANEUR_4','REENTRY_CTO_DETAILS_1','REENTRY_CTO_DETAILS_4','REENTRY_CTO_DETAILS_7','REENTRY_CTO_DETAILS_10','A_BRAND_DEVICE_1','A_BRAND_DEVICE_4','A_BRAND_DEVICE_7','A_BRAND_DEVICE_10','A_MANUFACTURER_DEVICE_1','A_MANUFACTURER_DEVICE_4','A_MANUFACTURER_DEVICE_7','A_MANUFACTURER_DEVICE_10','A_MANUFACTURER_DEVICE_2','A_MANUFACTURER_DEVICE_5','A_MANUFACTURER_DEVICE_8','A_MANUFACTURER_DEVICE_11','A_BRAND_DEVICE_2','A_BRAND_DEVICE_5','A_BRAND_DEVICE_8','A_BRAND_DEVICE_11','S_PATIENT_ZIPCODE_5','RUCA1','RUCA2','ADI_NATRANK_MEDIAN')
+# S_PATIENT_ZIPCODE_5 RUCA1 RUCA2 ADI_NATRANK_MEDIAN
+factorVars <- c('SURGWEEKDAY','COVID_STATUS','COVID_SYMPTOMS','COVID_DELAY','COVID_DELAY_IMPACT','COVID_VACCINATION','COVID_BOOSTER','PROC_CAUSEDEATH','S_TRAINEES','S_TRAINEE_1_LEVEL','S_TRAINEE_2_LEVEL','S_TRAINEE_1_ROLE','S_TRAINEE_2_ROLE','S_OTHER_ASSISTANTS','S_OTHER_ASSISTANT_TYPE_1','S_OTHER_ASSISTANT_TYPE_2','GENDER','AGECAT','RACE','PRIMARYINSURER','DC_STATUS','SETTING','URGENCY','LIVINGSTATUS','PREOP_FUNCSTATUS','PREOP_AMBUL','PRIOR_CVD','PRIOR_CAD','PRIOR_CHF','PREOP_DYSRHYTHMIA','COPD','PREOP_DIABETES','DIALYSIS','HTN','PREOP_SMOKING','STRESS','PREOP_ACE','PREOP_ASA','S_PRE_OP_ASA_DAILY_DOSE','PREOP_ANTICOAG','S_PRE_OP_RIVAROXABAN_DOSE','S_PRE_OP_RIVAROXABAN_DOSE_FRQ','PREOP_P2Y','PREOP_STATIN','PREOP_CILOSTAZOL','PRIOR_CABG','PRIOR_PCI','PRIOR_CEACAS','PRIOR_ANEURYSM','INFLOWTX_R','INFLOWTX_L','LEGTX_R','LEGTX_L','PRIOR_AMP_R','PRIOR_AMP_L','FEMENDART','LEGSYMP_R','LEGSYMP_L','ACUTEISCHEMIA_R','ACUTEISCHEMIA_L','TISSUELOSS_SEV_R','TISSUELOSS_SEV_L','INFECTION_R','INFECTION_L','NUMACCSITES','ACCSITE_1','ACCSITE_2','ACCSIDE_1','ACCSIDE_2','ACCGUIDE_1','ACCGUIDE_2','CLOSUREDEVTYPE_1','CLOSUREDEVTYPE_2','NUM_CLOSURE_USED_1','NUM_CLOSURE_USED_2','CLOSURE_TYPE_1_OUTCOME','CLOSURE_TYPE_2_OUTCOME','HEMOPATCH_1','HEMOPATCH_2','CCENDAR_1','CCENDAR_2','NUMARTTREAT','PVI_INDICATION_1','PVI_INDICATION_2','PVI_INDICATION_3','PVI_INDICATION_4','ARTERY_1','ARTERY_2','ARTERY_3','ARTERY_4','PROCSIDE_1','PROCSIDE_2','PROCSIDE_3','PROCSIDE_4','PROXIMAL_R','PROXIMAL_L','DISTAL_R','DISTAL_L','POPSEGTX_1','POPSEGTX_2','POPSEGTX_3','POPSEGTX_4','PRIOR_TXSITE_1','PRIOR_TXSITE_2','PRIOR_TXSITE_3','PRIOR_TXSITE_4','TASCGRADE_1','TASCGRADE_2','TASCGRADE_3','TASCGRADE_4','CALC_1','CALC_2','CALC_3','CALC_4','NUMDEV_1','NUMDEV_2','NUMDEV_3','NUMDEV_4','TREATMENT_TYPE_BF_1','TREATMENT_TYPE_BF_4','TREATMENT_TYPE_BF_7','TREATMENT_TYPE_BF_10','THROMBTIMING_ANEUR_1','THROMBTIMING_ANEUR_2','THROMBTIMING_ANEUR_3','THROMBTIMING_ANEUR_4','TREATMENT_TYPE_BF_2','TREATMENT_TYPE_BF_5','TREATMENT_TYPE_BF_8','TREATMENT_TYPE_BF_11','TREATMENT_TYPE_BF_3','TREATMENT_TYPE_BF_6','TREATMENT_TYPE_BF_9','TREATMENT_TYPE_BF_12','THROMBTIMING_OCC_1','THROMBTIMING_OCC_2','THROMBTIMING_OCC_3','THROMBTIMING_OCC_4','SUCTHROMB_1','SUCTHROMB_2','SUCTHROMB_3','SUCTHROMB_4','TECHRESULT_1','TECHRESULT_2','TECHRESULT_3','TECHRESULT_4','SUBSEQTX_1','SUBSEQTX_2','SUBSEQTX_3','SUBSEQTX_4','NUMSTENTS_1','NUMSTENTS_2','NUMSTENTS_3','NUMSTENTS_4','SUCTHROMB_A1','SUCTHROMB_A2','SUCTHROMB_A3','SUCTHROMB_A4','TECHRESULT_1A','TECHRESULT_2A','TECHRESULT_3A','TECHRESULT_4A','ENDOLEAK_1','ENDOLEAK_2','ENDOLEAK_3','ENDOLEAK_4','POSTOP_COMP','POSTOP_MI','THROMBTX','EMBOTX','TARGLESIONTX','REMOTEDISTX','PERFTX','HEMATOMA_1','HEMATOMA_2','STENOSISOCC_1','STENOSISOCC_2','INFECTION_1','INFECTION_2','PSEUDOANEURYSM_1','PSEUDOANEURYSM_2','AVFIST_1','AVFIST_2','AMPUTATION','PLANNEDAMP','AMPLEVEL_R','AMPLEVEL_L','DC_ASA','S_DISCHARGE_ASA_DAILY_DOSE','DC_P2Y','DC_STATIN','DC_ANTICOAG','S_DISCHARGE_RIVAROXABAN_DOSE','S_DISCHARGE_RIVAROXABAN_DOSE_FRQ','DC_ACE','DC_CILASTAZOL','CIN_PROPHYLAXIS','PROC_ANTICOAGULANT','POST_THROMBOSIS_1','POST_THROMBOSIS_2','POST_THROMBOSIS_3','POST_THROMBOSIS_4','POST_DISSECTION_1','POST_DISSECTION_2','POST_DISSECTION_3','POST_DISSECTION_4','LTF_CALC','S_SSN_INDICATOR','IDE_OTHER')
+
+logicalVars <- c('DEAD','ETHNICITY','S_PRE_OP_RIVAROXABAN','PRIOR_BYPENDARPVI','PRIOR_AMP','BYPPAT_1','BYPPAT_2','C02','PROTAMINE','CONCOMITANT_1_0','CONCOMITANT_1_1','CONCOMITANT_1_2','CONCOMITANT_1_3','CONCOMITANT_1_4','CONCOMITANT_1_5','CONCOMITANT_1_6','CONCOMITANT_1_7','CONCOMITANT_1_8','CONCOMITANT_2_0','CONCOMITANT_2_1','CONCOMITANT_2_2','CONCOMITANT_2_3','CONCOMITANT_2_4','CONCOMITANT_2_5','CONCOMITANT_2_6','CONCOMITANT_2_7','CONCOMITANT_2_8','CONCOMITANT_3_0','CONCOMITANT_3_1','CONCOMITANT_3_2','CONCOMITANT_3_3','CONCOMITANT_3_4','CONCOMITANT_3_5','CONCOMITANT_3_6','CONCOMITANT_3_7','CONCOMITANT_3_8','CONCOMITANT_4_0','CONCOMITANT_4_1','CONCOMITANT_4_2','CONCOMITANT_4_3','CONCOMITANT_4_4','CONCOMITANT_4_5','CONCOMITANT_4_6','CONCOMITANT_4_7','CONCOMITANT_4_8','CONCOMITANT_21_0','CONCOMITANT_21_1','CONCOMITANT_21_2','CONCOMITANT_21_3','CONCOMITANT_21_4','CONCOMITANT_21_6','CONCOMITANT_21_7','CONCOMITANT_21_8','CONCOMITANT_24_0','CONCOMITANT_24_1','CONCOMITANT_24_2','CONCOMITANT_24_3','CONCOMITANT_24_4','CONCOMITANT_24_6','CONCOMITANT_24_7','CONCOMITANT_24_8','CONCOMITANT_27_0','CONCOMITANT_27_1','CONCOMITANT_27_2','CONCOMITANT_27_3','CONCOMITANT_27_4','CONCOMITANT_27_6','CONCOMITANT_27_7','CONCOMITANT_27_8','CONCOMITANT_210_0','CONCOMITANT_210_1','CONCOMITANT_210_2','CONCOMITANT_210_3','CONCOMITANT_210_4','CONCOMITANT_210_6','CONCOMITANT_210_7','CONCOMITANT_210_8','CARDIACCOMP','PULMCOMP','RENALCOMP','ACCSITECOMP','CONTRASTCOMP','OTHERCOMP','MEDCHANGE','S_DISCHARGE_RIVAROXABAN','OD_DEVICE_ABLE_TRT_1','OD_DEVICE_ABLE_TRT_4','OD_DEVICE_ABLE_TRT_7','OD_DEVICE_ABLE_TRT_10','OD_DEVICE_ABLE_TRT_2','OD_DEVICE_ABLE_TRT_5','OD_DEVICE_ABLE_TRT_8','OD_DEVICE_ABLE_TRT_11','OD_DEVICE_ABLE_TRT_3','OD_DEVICE_ABLE_TRT_6','OD_DEVICE_ABLE_TRT_9','OD_DEVICE_ABLE_TRT_12','COVID_HISTORY')
+# COVID_HISTORY 
+
+
+#Correct Date formats
+pvi_proc <- pvi_proc %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+#apply data types
+pvi_proc[numVars] <- lapply(pvi_proc[numVars], as.numeric)
+pvi_proc[charVars] <- lapply(pvi_proc[charVars], as.character)
+pvi_proc[logicalVars] <- lapply(pvi_proc[logicalVars], as.logical)
+pvi_proc[factorVars] <- lapply(pvi_proc[factorVars], as.factor)
+
+############################ Remove Retired Variables #############################
+retired <- c('CLOSUREDEVSUCCESS_1','CLOSUREDEVSUCCESS_2','R_TXTYPE_1','R_TXTYPE_4','R_TXTYPE_7','R_TXTYPE_10','S_R_GUDIDDIA_1','S_R_GUDIDDIA_4','S_R_GUDIDDIA_7','S_R_GUDIDDIA_10','S_R_DIAMOCL_1','S_R_DIAMOCL_4','S_R_DIAMOCL_7','S_R_DIAMOCL_10','S_R_LENOCL_1','S_R_LENOCL_4','S_R_LENOCL_7','S_R_LENOCL_10','R_TXTYPE_2','R_TXTYPE_5','R_TXTYPE_8','R_TXTYPE_11','S_R_GUDIDDIA_2','S_R_GUDIDDIA_5','S_R_GUDIDDIA_8','S_R_GUDIDDIA_11','S_R_DIAMOCL_2','S_R_DIAMOCL_5','S_R_DIAMOCL_8','S_R_DIAMOCL_11','S_R_LENOCL_2','S_R_LENOCL_5','S_R_LENOCL_8','S_R_LENOCL_11','R_TXTYPE_3','R_TXTYPE_6','R_TXTYPE_9','R_TXTYPE_12','S_R_GUDIDDIA_3','S_R_GUDIDDIA_6','S_R_GUDIDDIA_9','S_R_GUDIDDIA_12','S_R_DIAMOCL_3','S_R_DIAMOCL_6','S_R_DIAMOCL_9','S_R_DIAMOCL_12','S_R_LENOCL_3','S_R_LENOCL_6','S_R_LENOCL_9','S_R_LENOCL_12','S_R_GUDIDDIA_STENTS_1','S_R_GUDIDDIA_STENTS_4','S_R_GUDIDDIA_STENTS_7','S_R_GUDIDDIA_STENTS_10','S_R_DIAMSTENT_1','S_R_DIAMSTENT_4','S_R_DIAMSTENT_7','S_R_DIAMSTENT_10','S_R_GUDIDLEN_1','S_R_GUDIDLEN_2','S_R_GUDIDLEN_3','S_R_GUDIDLEN_4','S_R_GUDIDLEN_5','S_R_GUDIDLEN_6','S_R_GUDIDLEN_7','S_R_GUDIDLEN_8','S_R_GUDIDLEN_9','S_R_GUDIDLEN_10','S_R_GUDIDLEN_11','S_R_GUDIDLEN_12','S_R_GUDIDLEN_STENTS_1','S_R_GUDIDLEN_STENTS_4','S_R_GUDIDLEN_STENTS_2','S_R_GUDIDLEN_STENTS_3','S_R_GUDIDLEN_STENTS_5','S_R_GUDIDLEN_STENTS_6','S_R_GUDIDLEN_STENTS_7','S_R_GUDIDLEN_STENTS_8','S_R_GUDIDLEN_STENTS_9','S_R_GUDIDLEN_STENTS_10','S_R_GUDIDLEN_STENTS_11','S_R_GUDIDLEN_STENTS_12','S_R_LENSTENT_1','S_R_LENSTENT_4','S_R_LENSTENT_7','S_R_LENSTENT_10','S_R_GUDIDDIA_STENTS_2','S_R_GUDIDDIA_STENTS_5','S_R_GUDIDDIA_STENTS_8','S_R_GUDIDDIA_STENTS_11','S_R_DIAMSTENT_2','S_R_DIAMSTENT_5','S_R_DIAMSTENT_8','S_R_DIAMSTENT_11','S_R_LENSTENT_2','S_R_LENSTENT_5','S_R_LENSTENT_8','S_R_LENSTENT_11','S_R_GUDIDDIA_STENTS_3','S_R_GUDIDDIA_STENTS_6','S_R_GUDIDDIA_STENTS_9','S_R_GUDIDDIA_STENTS_12','S_R_DIAMSTENT_3','S_R_DIAMSTENT_6','S_R_DIAMSTENT_9','S_R_DIAMSTENT_12','S_R_LENSTENT_3','S_R_LENSTENT_6','S_R_LENSTENT_9','S_R_LENSTENT_12','R_TRANSFER','R_ASACLASS','R_PREOP_BETABLOCKER','R_PREOP_TBIR','R_PREOP_TBIL','R_HEMO','R_HEMO_L','R_N_ACETYLCYSTEINE','R_NUM_LESIONS_TREATED1','R_NUM_LESIONS_TREATED2','R_NUM_LESIONS_TREATED3','R_NUM_LESIONS_TREATED4','R_TREATMENT_REQ','R_ARTERIAL_DISSECTION','R_ARTERIAL_PERFORATION','R_ADJUNCTS1','R_ADJUNCTS2','R_ADJUNCTS3','R_ADJUNCTS4','R_DISTAL_EMBOLIZATION','R_OCC_LGTH_ANEUR_1','R_OCC_LGTH_ANEUR_2','R_OCC_LGTH_ANEUR_3','R_OCC_LGTH_ANEUR_4','R_TREATMENT_TYPE_1_A','R_TREATMENT_TYPE_4_A','R_TREATMENT_TYPE_7_A','R_TREATMENT_TYPE_10_A','R_TREATMENT_TYPE_2_A','R_TREATMENT_TYPE_5_A','R_TREATMENT_TYPE_8_A','R_TREATMENT_TYPE_11_A','R_MEDCX','R_DC_BETABLOCKER','R_PROXIMAL_LEFT_OLD','R_PROXIMAL_RIGHT_OLD','R_DISTAL_LEFT_OLD','R_DISTAL_RIGHT_OLD','R_PRIOR_CEA','R_BIVALIRUDIN','SURGYEAR','SURGMONTH','HTIN','WTLB','PREOP_CREAT_UMOL','S_OD_LENGTH_DEVICE_1','S_OD_LENGTH_DEVICE_4','S_OD_LENGTH_DEVICE_7','S_OD_LENGTH_DEVICE_10','S_OD_LENGTH_DEVICE_2','S_OD_LENGTH_DEVICE_5','S_OD_LENGTH_DEVICE_8','S_OD_LENGTH_DEVICE_11','S_OD_LENGTH_DEVICE_3','S_OD_LENGTH_DEVICE_6','S_OD_LENGTH_DEVICE_9','S_OD_LENGTH_DEVICE_12')
+
+pvi_proc <- pvi_proc %>%
+  select(-all_of(retired))
+#526 vars
+#531 vars Feb 23
+############################# Recode Proc factors ##############################
+pvi_proc$factor_s_trainee_1_level <- factor(pvi_proc$S_TRAINEE_1_LEVEL, labels = c('Medical student','PGY 1','PGY 2','PGY 3','PGY 4','PGY 5','PGY 6','PGY 7','PGY 8','PGY 9','PGY 10'))
+
+pvi_proc$factor_s_trainee_2_level <- factor(pvi_proc$S_TRAINEE_2_LEVEL, labels = c('Medical student','PGY 1','PGY 2','PGY 3','PGY 4','PGY 5','PGY 6','PGY 7','PGY 8','PGY 9','PGY 10'))
+
+pvi_proc$factor_s_trainee_1_role <- factor(pvi_proc$S_TRAINEE_1_ROLE, labels = c('Primary surgeon','Teaching trainee','First assistant','Second assistant'))
+
+pvi_proc$factor_s_trainee_2_role <- factor(pvi_proc$S_TRAINEE_2_ROLE, labels = c('Primary surgeon','Teaching trainee','First assistant','Second assistant'))
+
+pvi_proc$factor_s_other_assistants <- factor(pvi_proc$S_OTHER_ASSISTANTS, labels = c('None','1','2'))
+
+pvi_proc$factor_s_other_assistants_type_1 <- factor(pvi_proc$S_OTHER_ASSISTANT_TYPE_1, labels = c('Physician', 'Nurse','NP','PA','RFNA','Other'))
+
+pvi_proc$factor_s_other_assistants_type_2 <- factor(pvi_proc$S_OTHER_ASSISTANT_TYPE_2, labels = c('Physician', 'Nurse','NP','PA','RFNA','Other'))
+
+pvi_proc$factor_surgweekday <- factor(pvi_proc$SURGWEEKDAY, labels = c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'))
+
+pvi_proc$factor_gender <- factor(pvi_proc$GENDER, labels = c('Male', 'Female', 'Other'))
+
+pvi_proc$factor_race <- factor(pvi_proc$RACE, labels = c('American Indian or Alaskan Native','Asian','Black or African American','Native Hawaiian or other Pacific Islander','White','More than 1 race','Unknown / Other'))
+
+pvi_proc$factor_agecat <- factor(pvi_proc$AGECAT, labels = c('<40','40-49','50-59','60-69','70-79','80-89','>89'))
+
+pvi_proc$factor_primaryinsurer <- factor(pvi_proc$PRIMARYINSURER, labels = c('Medicare', 'Medicaid', 'Commercial', 'Military/VA', 'Non US insurance', 'Self pay', 'Medicare Advantage'))
+
+pvi_proc$factor_dc_status <- factor(pvi_proc$DC_STATUS, labels = c('Home','Rehab unit','Nursing home','Dead','Other hospital','Homeless'))
+
+pvi_proc$factor_setting <- factor(pvi_proc$SETTING, labels = c('Hospital outpatient','Hospital inpatient','Ambulatory center','Office'))
+
+pvi_proc$factor_urgency <- factor(pvi_proc$URGENCY, labels = c('Elective','Urgent','Emergent'))
+
+pvi_proc$factor_livingstatus <- factor(pvi_proc$LIVINGSTATUS, labels = c('Home', 'Nursing home', 'Homeless'))
+
+pvi_proc$factor_preop_funcstatus <- factor(pvi_proc$PREOP_FUNCSTATUS, labels = c('Full','Light work','Self care','Assisted care','Bed bound'))
+
+pvi_proc$factor_preop_ambul <- factor(pvi_proc$PREOP_AMBUL, labels = c('Ambulatory','Ambulates with Assistance','Wheelchair','Bedridden','Ambulates with Prosthesis','Ambulates with Assistance or Prosthesis (retired since 09/28/2017)'))
+
+pvi_proc$factor_prior_cvd <- factor(pvi_proc$PRIOR_CVD, labels = c('None','Hx stroke,Asymptomatic','Hx stroke, minor deficit','Hx stroke, major deficit'))
+  
+pvi_proc$factor_prior_cad <- factor(pvi_proc$PRIOR_CAD, labels = c('None', 'Hx MI but no sx', 'Stable angina', 'Unstable angina or MI < 6 mos (retired since 09/12/2012)', 'MI < 6 mos', 'Unstable angina'))
+
+pvi_proc$factor_prior_chf <- factor(pvi_proc$PRIOR_CHF, labels = c('None', 'Asymptomatic, hx only', 'Mild' ,'Moderate CHF', 'Severe CHF'))
+
+pvi_proc$factor_preop_dysrhythmia <- factor(pvi_proc$PREOP_DYSRHYTHMIA, labels = c('No','Yes, A-fib/flutter (retired since 11/15/2016)','Yes, ventricular','A-V block w pacemaker','Yes, with ICD', 'Yes, atrial','Other'))
+
+pvi_proc$factor_copd <- factor(pvi_proc$COPD, labels = c('No', 'Not treated', 'On meds', 'On home oxygen'))
+
+pvi_proc$factor_preop_diabetes <- factor(pvi_proc$PREOP_DIABETES, labels = c('None', 'Diet', 'Non-insulin meds', 'Insulin'))
+
+pvi_proc$factor_dialysis <- factor(pvi_proc$DIALYSIS, labels = c('No', 'Functioning transplant', 'On dialysis'))
+
+pvi_proc$factor_htn <- factor(pvi_proc$HTN, labels = c('No', 'Yes (>=140/90 or history - retired since 11/15/2016)', 'Yes, controlled [added on 04/13/2020]', 'Yes, uncontrolled [added on 04/13/2020]'))
+
+pvi_proc$factor_preop_smoking <- factor(pvi_proc$PREOP_SMOKING, labels = c('Never', 'Prior', 'Current'))
+
+pvi_proc$factor_stress <- factor(pvi_proc$STRESS, labels = c('Not done', 'Normal', 'Ischemia', 'MI', 'Ischemia and MI'))
+
+pvi_proc$factor_preop_ace <- factor(pvi_proc$PREOP_ACE, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+pvi_proc$factor_preop_asa <- factor(pvi_proc$PREOP_ASA, labels = c('No', 'Yes', 'No, for medical reason',' Non-compliant'))
+
+pvi_proc$factor_preop_anticoag <- factor(pvi_proc$PREOP_ANTICOAG, labels = c('None','Warfarin','Dabigatran','Rivaroxaban','Other','No, for medical reason','Non-compliant'))
+
+pvi_proc$factor_preop_p2y <- factor(pvi_proc$PREOP_P2Y, labels = c('None', 'Clopidogrel', 'Prasugrel', 'Ticlopidine (retired since 09/22/2016)', 'Ticagrelor', 'Other', 'No, for medical reason', 'Non-compliant','PAR1 Inhibitor'))
+
+pvi_proc$factor_preop_statin <- factor(pvi_proc$PREOP_STATIN, labels = c('No', 'Yes','No, for medical reason','Non-compliant'))
+
+pvi_proc$factor_preop_cilostazol <- factor(pvi_proc$PREOP_CILOSTAZOL, labels = c('No', 'Yes', 'No, for medical reason',' Non-compliant'))
+
+pvi_proc$factor_prior_cabg <- factor(pvi_proc$PRIOR_CABG, labels = c('None', '<5yr ago', '>= 5yrs ago'))
+
+pvi_proc$factor_prior_pci <- factor(pvi_proc$PRIOR_PCI, labels = c('None', '<5yr ago', '>= 5yrs ago'))
+
+pvi_proc$factor_prior_ceacas <- factor(pvi_proc$PRIOR_CEACAS, labels = c('Neither','CEA','CAS','Both', 'huh?'))
+
+pvi_proc$factor_prior_aneurysm <- factor(pvi_proc$PRIOR_ANEURYSM, labels = c('None','Aortic','Other','Both','Yes (retired since 09/22/2016)'))
+
+pvi_proc$factor_inflowtx_r <- factor(pvi_proc$INFLOWTX_R, labels = c('No','PVI','Bypass','Both'))
+
+pvi_proc$factor_inflowtx_l <- factor(pvi_proc$INFLOWTX_L, labels = c('No','PVI','Bypass','Both'))
+
+pvi_proc$factor_legtx_r <- factor(pvi_proc$LEGTX_R, labels = c('No','PVI','Bypass','Both'))
+
+pvi_proc$factor_legtx_l <- factor(pvi_proc$LEGTX_L, labels = c('No','PVI','Bypass','Both'))
+
+pvi_proc$factor_prior_amp_r <- factor(pvi_proc$PRIOR_AMP_R, labels = c('No','Toe(s)','Transmet/midfoot','BK or thru knee','AK or higher','Minor Amputation (retired since 09/28/2017)', 'Major Amputation (retired since 09/28/2017)','Both minr and major amputation (retired since 09/28/2017)'))
+
+pvi_proc$factor_prior_amp_l <- factor(pvi_proc$PRIOR_AMP_L, labels = c('No','Toe(s)','Transmet/midfoot','BK or thru knee','AK or higher','Minor Amputation (retired since 09/28/2017)', 'Major Amputation (retired since 09/28/2017)','Both minr and major amputation (retired since 09/28/2017)'))
+
+pvi_proc$factor_femendart <- factor(pvi_proc$FEMENDART, labels = c('No','Right','Left','Both'))
+
+pvi_proc$factor_legsymp_r <- factor(pvi_proc$LEGSYMP_R, labels = c('Asymptomatic','Claudication (retired since 09/22/2016)','Moderate Claudication','Tissue Loss (retired since 09/22/2016)','Ischemic Rest Pain','Ulcer/necrosis','Non-healing Amputation','Both Ulcer + Non-healing Amp','Acute Ischemia','Mild Claudication','Severe Claudication','Not Treated (retired since 09/22/2016)'))
+
+pvi_proc$factor_legsymp_l <- factor(pvi_proc$LEGSYMP_L, labels = c('Asymptomatic','Claudication (retired since 09/22/2016)','Moderate Claudication','Tissue Loss (retired since 09/22/2016)','Ischemic Rest Pain','Ulcer/necrosis','Non-healing Amputation','Both Ulcer + Non-healing Amp','Acute Ischemia','Mild Claudication','Severe Claudication','Not Treated (retired since 09/22/2016)'))
+
+pvi_proc$factor_acuteischemia_r <- factor(pvi_proc$ACUTEISCHEMIA_R, labels = c('Viable','Marginally threatened','Immediately threatened','Irreversble (nonviable)'))
+
+pvi_proc$factor_acuteischemia_l <- factor(pvi_proc$ACUTEISCHEMIA_L, labels = c('Viable','Marginally threatened','Immediately threatened','Irreversble (nonviable)'))
+
+pvi_proc$factor_tissueloss_sev_r <- factor(pvi_proc$TISSUELOSS_SEV_R, labels = c('Grade 1, shallow','Grade 2, deep','Grade 3, extensive'))
+
+pvi_proc$factor_tissueloss_sev_l <- factor(pvi_proc$TISSUELOSS_SEV_L, labels = c('Grade 1, shallow','Grade 2, deep','Grade 3, extensive'))
+
+pvi_proc$factor_infection_r <- factor(pvi_proc$INFECTION_R, labels = c('Grade 0, none','Grade 1, mild','Grade 2, moderate','Grade 3, severe'))
+
+pvi_proc$factor_infection_l <- factor(pvi_proc$INFECTION_L, labels = c('Grade 0, none','Grade 1, mild','Grade 2, moderate','Grade 3, severe'))
+
+pvi_proc$factor_numaccsites <- factor(pvi_proc$NUMACCSITES, labels = c('1','2'))
+
+pvi_proc$factor_accsite_1 <- factor(pvi_proc$ACCSITE_1, labels = c('No Femoral or Other Access  (retired since 09/22/2016)','Femoral Retrograde (Introduced 9/16/2016)','Femoral Antegrade (Introduced 9/16/2016)','SFA (Introduced 9/16/2016)','Popliteal','Dorsal Pedal (Introduced 9/16/2016)','Posterior Tibial (Introduced 9/16/2016)','Brachial (Introduced 9/16/2016)','Radial (Introduced 9/16/2016)','Axillary (Introduced 9/16/2016)','Graft','Femoral Retro to Antegrade (Introduced 9/16/2016)','Femoral Ante to Retrograde (Introduced 9/16/2016)','Femoral (retired since 09/22/2016)','Arm (retired since 09/22/2016)','Other (retired since 09/22/2016)'))
+
+pvi_proc$factor_accsite_2 <- factor(pvi_proc$ACCSITE_2, labels = c('No Femoral or Other Access  (retired since 09/22/2016)','Femoral Retrograde (Introduced 9/16/2016)','Femoral Antegrade (Introduced 9/16/2016)','SFA (Introduced 9/16/2016)','Popliteal','Dorsal Pedal (Introduced 9/16/2016)','Posterior Tibial (Introduced 9/16/2016)','Brachial (Introduced 9/16/2016)','Radial (Introduced 9/16/2016)','Axillary (Introduced 9/16/2016)','Graft','Femoral Retro to Antegrade (Introduced 9/16/2016)','Femoral Ante to Retrograde (Introduced 9/16/2016)','Femoral (retired since 09/22/2016)','Arm (retired since 09/22/2016)','Other (retired since 09/22/2016)'))
+
+pvi_proc$factor_accside_1 <- factor(pvi_proc$ACCSIDE_1, labels = c('Right','Left'))
+
+pvi_proc$factor_accside_2 <- factor(pvi_proc$ACCSIDE_2, labels = c('Right','Left'))
+
+pvi_proc$factor_accguide_1 <- factor(pvi_proc$ACCGUIDE_1, labels = c('None','Fluoroscopy','Ultrasound','Open exposure','Concomitant endarterectomy'))
+
+pvi_proc$factor_accguide_2 <- factor(pvi_proc$ACCGUIDE_2, labels = c('None','Fluoroscopy','Ultrasound','Open exposure','Concomitant endarterectomy'))
+
+pvi_proc$factor_num_closure_used_1 <- factor(pvi_proc$NUM_CLOSURE_USED_1, labels = c('1','2','3','>3'))
+
+pvi_proc$factor_num_closure_used_2 <- factor(pvi_proc$NUM_CLOSURE_USED_2, labels = c('1','2','3','>3'))
+
+pvi_proc$factor_closure_type_1_outcome <- factor(pvi_proc$CLOSURE_TYPE_1_OUTCOME, labels = c('Closure device successful','Closure device failed','Closure device failed, intervention','Closure device failed, surgery'))
+
+pvi_proc$factor_closure_type_2_outcome <- factor(pvi_proc$CLOSURE_TYPE_2_OUTCOME, labels = c('Closure device successful','Closure device failed','Closure device failed, intervention','Closure device failed, surgery'))
+
+pvi_proc$factor_hemopatch_1 <- factor(pvi_proc$HEMOPATCH_1, labels = c('None','InsituSeal','Softseal STF','D-Stat Dry','Other'))
+
+pvi_proc$factor_hemopatch_2 <- factor(pvi_proc$HEMOPATCH_2, labels = c('None','InsituSeal','Softseal STF','D-Stat Dry','Other'))
+
+pvi_proc$factor_ccendar_1 <- factor(pvi_proc$CCENDAR_1, labels = c('No','Yes, primary closure','Yes, patch closure'))
+
+pvi_proc$factor_ccendar_2 <- factor(pvi_proc$CCENDAR_2, labels = c('No','Yes, primary closure','Yes, patch closure'))
+
+pvi_proc$factor_numarttreat <- factor(pvi_proc$NUMARTTREAT, labels = c('1','2','3','4','5 (retired since 09/22/2016)','6 (retired since 09/22/2016)'))
+
+pvi_proc$factor_pvi_indication_1 <- factor(pvi_proc$PVI_INDICATION_1, labels = c('Occlusive disease','Aneurysm','Occlusive or Aneurysm (retired since 09/28/2017)','None (retired since 09/28/2017)'))
+
+pvi_proc$factor_pvi_indication_2 <- factor(pvi_proc$PVI_INDICATION_2, labels = c('Occlusive disease','Aneurysm','Occlusive or Aneurysm (retired since 09/28/2017)','None (retired since 09/28/2017)'))
+
+pvi_proc$factor_pvi_indication_3 <- factor(pvi_proc$PVI_INDICATION_3, labels = c('Occlusive disease','Aneurysm','Occlusive or Aneurysm (retired since 09/28/2017)','None (retired since 09/28/2017)'))
+
+pvi_proc$factor_pvi_indication_4 <- factor(pvi_proc$PVI_INDICATION_4, labels = c('Occlusive disease','Aneurysm','Occlusive or Aneurysm (retired since 09/28/2017)','None (retired since 09/28/2017)'))
+
+pvi_proc$factor_pvi_artery_1 <- factor(pvi_proc$ARTERY_1, labels = c('Aorta','Common Iliac','External Iliac','Com+Ext Iliac (Introduced 9/22/2016)','Com Fem','Profunda','SFA','Popliteal','SFA+Pop (Introduced 9/22/2016)','Ant Tibial','TP Trunk','Post Tibial','Peroneal','Dorsal Pedal (Introduced 9/22/2016)','Plantar (Introduced 9/22/2016)','Internal Iliac (Introduced 9/22/2016)'))
+
+pvi_proc$factor_pvi_artery_2 <- factor(pvi_proc$ARTERY_2, labels = c('Aorta','Common Iliac','External Iliac','Com+Ext Iliac (Introduced 9/22/2016)','Com Fem','Profunda','SFA','Popliteal','SFA+Pop (Introduced 9/22/2016)','Ant Tibial','TP Trunk','Post Tibial','Peroneal','Dorsal Pedal (Introduced 9/22/2016)','Plantar (Introduced 9/22/2016)','Internal Iliac (Introduced 9/22/2016)'))
+
+pvi_proc$factor_pvi_artery_3 <- factor(pvi_proc$ARTERY_3, labels = c('Aorta','Common Iliac','External Iliac','Com+Ext Iliac (Introduced 9/22/2016)','Com Fem','Profunda','SFA','Popliteal','SFA+Pop (Introduced 9/22/2016)','Ant Tibial','TP Trunk','Post Tibial','Peroneal','Dorsal Pedal (Introduced 9/22/2016)','Plantar (Introduced 9/22/2016)','Internal Iliac (Introduced 9/22/2016)'))
+
+pvi_proc$factor_pvi_artery_4 <- factor(pvi_proc$ARTERY_4, labels = c('Aorta','Common Iliac','External Iliac','Com+Ext Iliac (Introduced 9/22/2016)','Com Fem','Profunda','SFA','Popliteal','SFA+Pop (Introduced 9/22/2016)','Ant Tibial','TP Trunk','Post Tibial','Peroneal','Dorsal Pedal (Introduced 9/22/2016)','Plantar (Introduced 9/22/2016)','Internal Iliac (Introduced 9/22/2016)'))
+
+pvi_proc$factor_procside_1 <- factor(pvi_proc$PROCSIDE_1, labels = c('Right','Left','Aorta (retired since 09/28/2017)'))
+
+pvi_proc$factor_procside_2 <- factor(pvi_proc$PROCSIDE_2, labels = c('Right','Left','Aorta (retired since 09/28/2017)'))
+
+pvi_proc$factor_procside_3 <- factor(pvi_proc$PROCSIDE_3, labels = c('Right','Left','Aorta (retired since 09/28/2017)'))
+
+pvi_proc$factor_procside_4 <- factor(pvi_proc$PROCSIDE_4, labels = c('Right','Left','Aorta (retired since 09/28/2017)'))
+
+pvi_proc$factor_proximal_r <- factor(pvi_proc$PROXIMAL_R, labels = c('0','1','2','3','Not imaged'))
+
+pvi_proc$factor_proximal_l <- factor(pvi_proc$PROXIMAL_L, labels = c('0','1','2','3','Not imaged'))
+
+pvi_proc$factor_distal_r <- factor(pvi_proc$DISTAL_R, labels = c('0','1','2','3','Not imaged'))
+
+pvi_proc$factor_distal_l <- factor(pvi_proc$DISTAL_L, labels = c('0','1','2','3','Not imaged'))
+
+pvi_proc$factor_popsegtx_1 <- factor(pvi_proc$POPSEGTX_1, labels = c('P1','P2','P3','P1+P2','P2+P3','P1+P2+P3'))
+
+pvi_proc$factor_popsegtx_2 <- factor(pvi_proc$POPSEGTX_2, labels = c('P1','P2','P3','P1+P2','P2+P3','P1+P2+P3'))
+
+pvi_proc$factor_popsegtx_3 <- factor(pvi_proc$POPSEGTX_3, labels = c('P1','P2','P3','P1+P2','P2+P3','P1+P2+P3'))
+
+pvi_proc$factor_popsegtx_4 <- factor(pvi_proc$POPSEGTX_4, labels = c('P1','P2','P3','P1+P2','P2+P3','P1+P2+P3'))
+
+pvi_proc$factor_prior_txsite_1 <- factor(pvi_proc$PRIOR_TXSITE_1, labels = c('No','Yes, PTA','Yes, atherectomy','Yes, stent','Yes, other','Unsure'))
+
+pvi_proc$factor_prior_txsite_2 <- factor(pvi_proc$PRIOR_TXSITE_2, labels = c('No','Yes, PTA','Yes, atherectomy','Yes, stent','Yes, other','Unsure'))
+
+pvi_proc$factor_prior_txsite_3 <- factor(pvi_proc$PRIOR_TXSITE_3, labels = c('No','Yes, PTA','Yes, atherectomy','Yes, stent','Yes, other','Unsure'))
+
+pvi_proc$factor_prior_txsite_4 <- factor(pvi_proc$PRIOR_TXSITE_4, labels = c('No','Yes, PTA','Yes, atherectomy','Yes, stent','Yes, other','Unsure'))
+
+pvi_proc$factor_tascgrade_1 <- factor(pvi_proc$TASCGRADE_1, labels = c('A','B','C','D','Protect Adjacent Artery (Introdcued 9/22/2016)'))
+
+pvi_proc$factor_tascgrade_2 <- factor(pvi_proc$TASCGRADE_2, labels = c('A','B','C','D','Protect Adjacent Artery (Introdcued 9/22/2016)'))
+
+pvi_proc$factor_tascgrade_3 <- factor(pvi_proc$TASCGRADE_3, labels = c('A','B','C','D','Protect Adjacent Artery (Introdcued 9/22/2016)'))
+
+pvi_proc$factor_tascgrade_4 <- factor(pvi_proc$TASCGRADE_4, labels = c('A','B','C','D','Protect Adjacent Artery (Introdcued 9/22/2016)'))
+
+pvi_proc$factor_calc_1 <- factor(pvi_proc$CALC_1, labels = c('None','Focal','Mild','Moderate','Severe','Not evaluated'))
+
+pvi_proc$factor_calc_2 <- factor(pvi_proc$CALC_2, labels = c('None','Focal','Mild','Moderate','Severe','Not evaluated'))
+
+pvi_proc$factor_calc_3 <- factor(pvi_proc$CALC_3, labels = c('None','Focal','Mild','Moderate','Severe','Not evaluated'))
+
+pvi_proc$factor_calc_4 <- factor(pvi_proc$CALC_4, labels = c('None','Focal','Mild','Moderate','Severe','Not evaluated'))
+
+pvi_proc$factor_numdev_1 <- factor(pvi_proc$NUMDEV_1, labels = c('1','2','3'))
+
+pvi_proc$factor_numdev_2 <- factor(pvi_proc$NUMDEV_2, labels = c('1','2','3'))
+
+pvi_proc$factor_numdev_3 <- factor(pvi_proc$NUMDEV_3, labels = c('1','2','3'))
+
+pvi_proc$factor_numdev_4 <- factor(pvi_proc$NUMDEV_4, labels = c('1','2','3'))
+
+pvi_proc$factor_txtype_1 <- factor(pvi_proc$TREATMENT_TYPE_BF_1, labels = c('Plain balloon','Stent graft','Special balloon','Stent','Atherectomy','Not able to treat','Bailout stent'))
+
+pvi_proc$factor_txtype_4 <- factor(pvi_proc$TREATMENT_TYPE_BF_4, labels = c('Plain balloon','Stent graft','Special balloon','Stent','Atherectomy','Not able to treat','Bailout stent'))
+
+pvi_proc$factor_txtype_7 <- factor(pvi_proc$TREATMENT_TYPE_BF_7, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Not Able to Treat','Bailout Stent'))
+
+pvi_proc$factor_txtype_10 <- factor(pvi_proc$TREATMENT_TYPE_BF_10, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Not Able to Treat'))
+
+pvi_proc$factor_thrombtiming_aneur_1 <- factor(pvi_proc$THROMBTIMING_ANEUR_1, labels = c('Prior procedure'))
+
+pvi_proc$factor_thrombtiming_aneur_2 <- factor(pvi_proc$THROMBTIMING_ANEUR_2, labels = c('Prior procedure'))
+
+pvi_proc$factor_thrombtiming_aneur_3 <- factor(pvi_proc$THROMBTIMING_ANEUR_3, labels = c('Prior procedure'))
+
+#pvi_proc$factor_thrombtiming_aneur_4 <- factor(pvi_proc$THROMBTIMING_ANEUR_4, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_txtype_2 <- factor(pvi_proc$TREATMENT_TYPE_BF_2, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Not Able to Treat','Bailout Stent','Bailout Stent Graft'))
+
+pvi_proc$factor_txtype_5 <- factor(pvi_proc$TREATMENT_TYPE_BF_5, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Bailout Stent','Bailout Stent Graft'))
+
+pvi_proc$factor_txtype_8 <- factor(pvi_proc$TREATMENT_TYPE_BF_8, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Not Able to Treat','Bailout Stent'))
+
+pvi_proc$factor_txtype_11 <- factor(pvi_proc$TREATMENT_TYPE_BF_11, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy'))
+
+pvi_proc$factor_txtype_3 <- factor(pvi_proc$TREATMENT_TYPE_BF_3, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Bailout Stent','Bailout Stent Graft'))
+
+pvi_proc$factor_txtype_6 <- factor(pvi_proc$TREATMENT_TYPE_BF_6, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Bailout Stent'))
+
+pvi_proc$factor_txtype_9 <- factor(pvi_proc$TREATMENT_TYPE_BF_9, labels = c('Plain Balloon','Stent Graft','Special Balloon','Stent','Atherectomy','Bailout Stent'))
+
+pvi_proc$factor_txtype_12 <- factor(pvi_proc$TREATMENT_TYPE_BF_12, labels = c('Plain Balloon'))
+
+pvi_proc$factor_thrombtiming_occ_1 <- factor(pvi_proc$THROMBTIMING_OCC_1, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_thrombtiming_occ_2 <- factor(pvi_proc$THROMBTIMING_OCC_2, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_thrombtiming_occ_3 <- factor(pvi_proc$THROMBTIMING_OCC_3, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_thrombtiming_occ_4 <- factor(pvi_proc$THROMBTIMING_OCC_4, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_sucthromb_1 <- factor(pvi_proc$SUCTHROMB_1, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_sucthromb_2 <- factor(pvi_proc$SUCTHROMB_2, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_sucthromb_3 <- factor(pvi_proc$SUCTHROMB_3, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_sucthromb_4 <- factor(pvi_proc$SUCTHROMB_4, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_techresult_1 <- factor(pvi_proc$TECHRESULT_1, labels = c('Successful (stenosis <= 30%)','Stenosis>30% or 10mm gradient','Target lesion occlusion','Technical failure, unable to cross lesion','Stenosis>30% or 10mm Gradient but total occlusion possible (retired since 09/28/2017)'))
+
+pvi_proc$factor_techresult_2 <- factor(pvi_proc$TECHRESULT_2, labels = c('Successful (stenosis <= 30%)','Stenosis>30% or 10mm gradient','Target lesion occlusion','Technical failure, unable to cross lesion','Stenosis>30% or 10mm Gradient but total occlusion possible (retired since 09/28/2017)'))
+
+pvi_proc$factor_techresult_3 <- factor(pvi_proc$TECHRESULT_3, labels = c('Successful (stenosis <= 30%)','Stenosis>30% or 10mm gradient','Target lesion occlusion','Technical failure, unable to cross lesion','Stenosis>30% or 10mm Gradient but total occlusion possible (retired since 09/28/2017)'))
+
+pvi_proc$factor_techresult_4 <- factor(pvi_proc$TECHRESULT_4, labels = c('Successful (stenosis <= 30%)','Stenosis>30% or 10mm gradient','Target lesion occlusion','Technical failure, unable to cross lesion','Stenosis>30% or 10mm Gradient but total occlusion possible (retired since 09/28/2017)'))
+
+pvi_proc$factor_subseqtx_1 <- factor(pvi_proc$SUBSEQTX_1, labels = c('None','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_subseqtx_2 <- factor(pvi_proc$SUBSEQTX_2, labels = c('None','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_subseqtx_3 <- factor(pvi_proc$SUBSEQTX_3, labels = c('None','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_subseqtx_4 <- factor(pvi_proc$SUBSEQTX_4, labels = c('None','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_numstents_1 <- factor(pvi_proc$NUMSTENTS_1, labels = c('1','2','3'))
+
+pvi_proc$factor_numstents_2 <- factor(pvi_proc$NUMSTENTS_2, labels = c('1'))
+
+pvi_proc$factor_numstents_3 <- factor(pvi_proc$NUMSTENTS_3, labels = c('1'))
+
+pvi_proc$factor_numstents_4 <- factor(pvi_proc$NUMSTENTS_4, labels = c('1'))
+
+pvi_proc$factor_sucthromb_a1 <- factor(pvi_proc$SUCTHROMB_A1, labels = c('Prior procedure'))
+
+pvi_proc$factor_sucthromb_a2 <- factor(pvi_proc$SUCTHROMB_A2, labels = c('Prior procedure'))
+
+#pvi_proc$factor_sucthromb_a3 <- factor(pvi_proc$SUCTHROMB_A3, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+#pvi_proc$factor_sucthromb_a4 <- factor(pvi_proc$SUCTHROMB_A4, labels = c('Prior procedure','Planned, current procedure','For complication current procedure'))
+
+pvi_proc$factor_techresult_1a <- factor(pvi_proc$TECHRESULT_1A, labels = c('Successful (Stenosis <= 30%),but endoleak unknown (retired since 12/19/2017)','Stenosis>30% or 10mm gradient','Target lesion occlusion' ,'Technical failure, unable to cross lesion/deploy stent grafts','Stenosis>30% or 10mm Gradient but total occlusion possible (retired since 09/28/2017)','Success (stenosis <= 30% and no endoleak)','Endoleak','Endoleak + stenosis>30%'))
+
+pvi_proc$factor_techresult_2a <- factor(pvi_proc$TECHRESULT_2A, labels = c('Successful (Stenosis <= 30%), but endoleak unknown (retired since 12/19/2017)'))
+
+pvi_proc$factor_techresult_3a <- factor(pvi_proc$TECHRESULT_3A, labels = c('Successful (Stenosis <= 30%), but endoleak unknown (retired since 12/19/2017)'))
+
+pvi_proc$factor_techresult_4A <- factor(pvi_proc$TECHRESULT_4A, labels = c('Successful (Stenosis <= 30%), but endoleak unknown (retired since 12/19/2017)'))
+
+pvi_proc$factor_endoleak_1 <- factor(pvi_proc$ENDOLEAK_1, labels = c('None','Type 1','Type 2','Type 3'))
+
+pvi_proc$factor_endoleak_2 <- factor(pvi_proc$ENDOLEAK_2, labels = c('None','Type 1'))
+
+pvi_proc$factor_endoleak_3 <- factor(pvi_proc$ENDOLEAK_3, labels = c('None','Type 1'))
+
+pvi_proc$factor_endoleak_4 <- factor(pvi_proc$ENDOLEAK_4, labels = c('None','Type 1'))
+
+pvi_proc$factor_postop_comp <- factor(pvi_proc$POSTOP_COMP, labels = c('No','Yes','Yes, requiring admission'))
+
+pvi_proc$factor_postop_mi <- factor(pvi_proc$POSTOP_MI, labels = c('No','Troponin only','EKG or clinical'))
+
+pvi_proc$factor_thrombtx <- factor(pvi_proc$THROMBTX, labels = c( 'No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_embotx <- factor(pvi_proc$EMBOTX, labels = c( 'No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_targetlesiontx <- factor(pvi_proc$TARGLESIONTX, labels = c( 'No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_remotedistx <- factor(pvi_proc$REMOTEDISTX, labels = c( 'No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_perftx <- factor(pvi_proc$PERFTX, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_hematoma_1 <- factor(pvi_proc$HEMATOMA_1, labels = c('No','Minor','Transfusion','Thrombin injection','Interventional Re-Tx (intraop or postop) [new option as of 2020 Q2]','Surgical Re-Tx (intraop or postop)'))
+
+pvi_proc$factor_hematoma_2 <- factor(pvi_proc$HEMATOMA_2, labels = c('No','Minor','Transfusion','Thrombin injection','Interventional Re-Tx (intraop or postop) [new option as of 2020 Q2]','Surgical Re-Tx (intraop or postop)'))
+
+pvi_proc$factor_stenosisocc_1 <- factor(pvi_proc$STENOSISOCC_1, labels = c('No','Medical Rx','Interventional Rx','Surgical Rx'))
+
+pvi_proc$factor_stenosisocc_2 <- factor(pvi_proc$STENOSISOCC_2, labels = c('No','Medical Rx','Interventional Rx','Surgical Rx'))
+
+pvi_proc$factor_infection_1 <- factor(pvi_proc$INFECTION_1, labels = c('No','Medical Rx','Surgical Rx'))
+
+pvi_proc$factor_infection_2 <- factor(pvi_proc$INFECTION_2, labels = c('No','Medical Rx','Surgical Rx'))
+
+pvi_proc$factor_pseudoaneurysm_1 <- factor(pvi_proc$PSEUDOANEURYSM_1, labels = c('No','Minor','Moderate (transfusion)','Moderate (thrombin injection)','Major (operation)'))
+
+pvi_proc$factor_pseudoaneurysm_2 <- factor(pvi_proc$PSEUDOANEURYSM_2, labels = c('No','Minor','Moderate (transfusion)','Moderate (thrombin injection)','Major (operation)'))
+
+pvi_proc$factor_avfist_1 <- factor(pvi_proc$AVFIST_1, labels = c('No','Medical Rx','Interventional Rx','Surgical Rx'))
+
+pvi_proc$factor_avfist_2 <- factor(pvi_proc$AVFIST_2, labels = c('No','Medical Rx','Interventional Rx','Surgical Rx'))
+
+pvi_proc$factor_amputation <- factor(pvi_proc$AMPUTATION, labels = c('No','Toe(s) (retired since 10/24/2016)','Transmet/midfoot (retired since 10/24/2016)','BK or Thru Knee (retired since 10/24/2016)','AK or Higher (retired since 10/24/2016)','Right','Left','Bilateral'))
+
+pvi_proc$factor_planned_amp <- factor(pvi_proc$PLANNEDAMP, labels = c('No','Right','Left','Bilateral'))
+
+pvi_proc$factor_amplevel_r <- factor(pvi_proc$AMPLEVEL_R , labels = c('Toe(s)','Transmet/midfoot','BK or thru knee','AK or higher'))
+
+pvi_proc$factor_amplevel_l <- factor(pvi_proc$AMPLEVEL_L , labels = c('Toe(s)','Transmet/midfoot','BK or thru knee','AK or higher'))
+
+pvi_proc$factor_dc_asa <- factor(pvi_proc$DC_ASA, labels = c('No','Yes','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+pvi_proc$factor_dc_p2y <- factor(pvi_proc$DC_P2Y, labels = c('No','Clopidogrel','Prasugrel','Ticlopidine  (retired since 09/22/2016)','Ticagrelor','Other P2Y12 Inhibitor','No, for medical reason','Non-compliant (retired since 12/15/2014)','PAR1 Inhibitor'))
+
+pvi_proc$factor_dc_statin <- factor(pvi_proc$DC_STATIN, labels = c('No','Yes','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+pvi_proc$factor_dc_anticoag <- factor(pvi_proc$DC_ANTICOAG, labels = c('None','Warfarin','Dabigatran','Rivaroxaban','Other','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+pvi_proc$factor_dc_ace <- factor(pvi_proc$DC_ACE, labels = c('No','Yes','No, for medical reason','Non-compliant (retired since 12/15/2014)'))
+
+pvi_proc$factor_dc_cilastazol <- factor(pvi_proc$DC_CILASTAZOL, labels = c('No','Yes','No, for medical reason'))
+
+pvi_proc$factor_cin_prophylaxis <- factor(pvi_proc$CIN_PROPHYLAXIS, labels = c( 'None','Bicarb','Saline','Both'))
+
+pvi_proc$factor_proc_anticoagulant <- factor(pvi_proc$PROC_ANTICOAGULANT, labels = c('No','Heparin','Bivalirudin','Other'))
+
+pvi_proc$factor_post_thrombosis_1 <- factor(pvi_proc$POST_THROMBOSIS_1, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_post_thrombosis_2 <- factor(pvi_proc$POST_THROMBOSIS_2, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_post_thrombosis_3 <- factor(pvi_proc$POST_THROMBOSIS_3, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_post_thrombosis_4 <- factor(pvi_proc$POST_THROMBOSIS_4, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_post_dissection_1 <- factor(pvi_proc$POST_DISSECTION_1, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_post_dissection_2 <- factor(pvi_proc$POST_DISSECTION_2, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_post_dissection_3 <- factor(pvi_proc$POST_DISSECTION_3, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_post_dissection_4 <- factor(pvi_proc$POST_DISSECTION_4, labels = c('No','Medical','Interventional','Surgical'))
+
+pvi_proc$factor_ide_other <- factor(pvi_proc$IDE_OTHER, labels = c('No IDE or Other device','IDE Device','Other Device'))
+
+converted_factors <- c('SURGWEEKDAY','S_TRAINEE_1','S_TRAINEE_2','PROC_CAUSEDEATH','S_TRAINEES','S_TRAINEE_1_LEVEL','S_TRAINEE_2_LEVEL','S_TRAINEE_1_ROLE','S_TRAINEE_2_ROLE','S_OTHER_ASSISTANTS','S_OTHER_ASSISTANT_TYPE_1','S_OTHER_ASSISTANT_TYPE_2','GENDER','AGECAT','RACE','PRIMARYINSURER','DC_STATUS','SETTING','URGENCY','LIVINGSTATUS','PREOP_FUNCSTATUS','PREOP_AMBUL','PRIOR_CVD','PRIOR_CAD','PRIOR_CHF','PREOP_DYSRHYTHMIA','COPD','PREOP_DIABETES','DIALYSIS','HTN','PREOP_SMOKING','STRESS','PREOP_ACE','PREOP_ASA','PREOP_ANTICOAG','PREOP_P2Y','PREOP_STATIN','PREOP_CILOSTAZOL','PRIOR_CABG','PRIOR_PCI','PRIOR_CEACAS','PRIOR_ANEURYSM','INFLOWTX_R','INFLOWTX_L','LEGTX_R','LEGTX_L','PRIOR_AMP_R','PRIOR_AMP_L','FEMENDART','LEGSYMP_R','LEGSYMP_L','ACUTEISCHEMIA_R','ACUTEISCHEMIA_L','TISSUELOSS_SEV_R','TISSUELOSS_SEV_L','INFECTION_R','INFECTION_L','NUMACCSITES','ACCSITE_1','ACCSITE_2','ACCSIDE_1','ACCSIDE_2','ACCGUIDE_1','ACCGUIDE_2','NUM_CLOSURE_USED_1','NUM_CLOSURE_USED_2','CLOSURE_TYPE_1_OUTCOME','CLOSURE_TYPE_2_OUTCOME','HEMOPATCH_1','HEMOPATCH_2','CCENDAR_1','CCENDAR_2','NUMARTTREAT','PVI_INDICATION_1','PVI_INDICATION_2','PVI_INDICATION_3','PVI_INDICATION_4','ARTERY_1','ARTERY_2','ARTERY_3','ARTERY_4','PROCSIDE_1','PROCSIDE_2','PROCSIDE_3','PROCSIDE_4','PROXIMAL_R','PROXIMAL_L','DISTAL_R','DISTAL_L','POPSEGTX_1','POPSEGTX_2','POPSEGTX_3','POPSEGTX_4','PRIOR_TXSITE_1','PRIOR_TXSITE_2','PRIOR_TXSITE_3','PRIOR_TXSITE_4','TASCGRADE_1','TASCGRADE_2','TASCGRADE_3','TASCGRADE_4','CALC_1','CALC_2','CALC_3','CALC_4','NUMDEV_1','NUMDEV_2','NUMDEV_3','NUMDEV_4','TREATMENT_TYPE_BF_1','TREATMENT_TYPE_BF_4','TREATMENT_TYPE_BF_7','TREATMENT_TYPE_BF_10','TREATMENT_TYPE_BF_2','TREATMENT_TYPE_BF_5','TREATMENT_TYPE_BF_8','TREATMENT_TYPE_BF_11','THROMBTIMING_OCC_1','THROMBTIMING_OCC_2','THROMBTIMING_OCC_3','THROMBTIMING_OCC_4','SUCTHROMB_1','SUCTHROMB_2','SUCTHROMB_3','TECHRESULT_1','TECHRESULT_2','TECHRESULT_3','TECHRESULT_4','SUBSEQTX_1','SUBSEQTX_2','SUBSEQTX_3','SUBSEQTX_4','NUMSTENTS_1','TECHRESULT_1A','POSTOP_COMP','POSTOP_MI','THROMBTX','EMBOTX','TARGLESIONTX','REMOTEDISTX','PERFTX','HEMATOMA_1','HEMATOMA_2','STENOSISOCC_1','STENOSISOCC_2','INFECTION_1','INFECTION_2','PSEUDOANEURYSM_1','PSEUDOANEURYSM_2','AVFIST_1','AVFIST_2','AMPUTATION','PLANNEDAMP','AMPLEVEL_R','AMPLEVEL_L','DC_ASA','DC_P2Y','DC_STATIN','DC_ANTICOAG','DC_ACE','DC_CILASTAZOL','CIN_PROPHYLAXIS','PROC_ANTICOAGULANT','POST_THROMBOSIS_1','POST_THROMBOSIS_2','POST_THROMBOSIS_3','POST_THROMBOSIS_4','POST_DISSECTION_1','POST_DISSECTION_2','POST_DISSECTION_3','POST_DISSECTION_4','IDE_OTHER')
+#,'THROMBTIMING_ANEUR_1', 'SUCTHROMB_A1',
+#'COVID_STATUS','COVID_SYMPTOMS','COVID_DELAY','COVID_DELAY_IMPACT','COVID_VACCINATION','COVID_BOOSTER','THROMBTIMING_ANEUR_2','THROMBTIMING_ANEUR_3','THROMBTIMING_ANEUR_4','TREATMENT_TYPE_BF_3','TREATMENT_TYPE_BF_6','TREATMENT_TYPE_BF_9','TREATMENT_TYPE_BF_12','SUCTHROMB_4','NUMSTENTS_2','NUMSTENTS_3','NUMSTENTS_4','SUCTHROMB_A2','SUCTHROMB_A3','SUCTHROMB_A4','TECHRESULT_2A','TECHRESULT_3A','TECHRESULT_4A','ENDOLEAK_1','ENDOLEAK_2','ENDOLEAK_3','ENDOLEAK_4','LTF_CALC','S_SSN_INDICATOR','S_OTHER_ASST_1_SPECIFY_OTHER','S_OTHER_ASST_2_SPECIFY_OTHER', 'DEVTYPEOCC_1','DEVTYPEOCC_2','DEVTYPEOCC_3','DEVTYPEOCC_4','DEVTYPEOCC_5','DEVTYPEOCC_6','DEVTYPEOCC_7','DEVTYPEOCC_8','DEVTYPEOCC_9','DEVTYPEOCC_10','DEVTYPEOCC_11','DEVTYPEOCC_12','STENT_TYPE_ANEUR_1','STENT_TYPE_ANEUR_2','STENT_TYPE_ANEUR_3','STENT_TYPE_ANEUR_4','STENT_TYPE_ANEUR_5','STENT_TYPE_ANEUR_6','STENT_TYPE_ANEUR_7','STENT_TYPE_ANEUR_8','STENT_TYPE_ANEUR_9','STENT_TYPE_ANEUR_10','STENT_TYPE_ANEUR_11','STENT_TYPE_ANEUR_12','MECHTHROMB_OCC_1','MECHTHROMB_OCC_2','MECHTHROMB_OCC_3','MECHTHROMB_OCC_4','MECHTHROMB_ANEUR_1','MECHTHROMB_ANEUR_2','MECHTHROMB_ANEUR_3','MECHTHROMB_ANEUR_4','REENTRY_CTO_DETAILS_1','REENTRY_CTO_DETAILS_4','REENTRY_CTO_DETAILS_7','REENTRY_CTO_DETAILS_10','EMBPROTECT_OCC_1','EMBPROTECT_OCC_2','EMBPROTECT_OCC_3','EMBPROTECT_OCC_4','EMBPROTECT_ANEUR_1','EMBPROTECT_ANEUR_2','EMBPROTECT_ANEUR_3','EMBPROTECT_ANEUR_4',
+pvi_proc_final <- pvi_proc %>%
+  select(-all_of(converted_factors)) %>%
+  write_rds('output/pvi_proc_only.rds')
+# 546 vars
+
+############################## Import LTF Data #################################
+pvi_ltf <- read_csv('input/PVI_LTF_20230201.csv')
+
+################################ LTF Data Types ################################
+ltf_numVars = c('PROC_SURVIVALDAYS','LTF_DAYS','LTF_ABIR','LTF_ABIL','LTF_TOEPRESSURE_R','LTF_TOEPRESSURE_L','LTF_AMP_R_DAYS','LTF_AMP_L_DAYS','LTF_RETX_1_DAYS','LTF_RETX_2_DAYS','LTF_RETX_3_DAYS','LTF_RETX_4_DAYS','LTF_RETX_SURG_1_DAYS','LTF_RETX_SURG_2_DAYS','LTF_RETX_SURG_3_DAYS','LTF_RETX_SURG_4_DAYS','LTF_OCCLUSION_1_DAYS','LTF_OCCLUSION_2_DAYS','LTF_OCCLUSION_3_DAYS','LTF_OCCLUSION_4_DAYS','D30_DAYS')
+
+ltf_charVars = c('CENTERID','PATIENTID','PRIMPROCID','LTF_ID','LTF_S_MANDATORY_COMP','S_FWP_SUBMIT_WO_VALIDATION')
+
+ltf_factorVars = c('FWP_TIMEPOINT','LTF_CONTACT','LTF_STATUS','LTF_MORTCAUSE','LTF_FUNCSTATUS','LTF_CURRAMB','LTF_ASA','LTF_P2Y','LTF_ANTICOAG','LTF_STATIN','LTF_ACE','LTF_CILOSTRAZOL','LTF_SYMPTOMS_R','LTF_SYMPTOMS_L','LTF_TISSUELOSS_R','LTF_TISSUELOSS_L','LTF_INFECTION_R','LTF_INFECTION_L','LTF_AMP_R','LTF_AMP_L','LTF_CURRPATENCY_1','LTF_CURRPATENCY_2','LTF_CURRPATENCY_3','LTF_CURRPATENCY_4','LTF_PATJUDGE_1','LTF_PATJUDGE_2','LTF_PATJUDGE_3','LTF_PATJUDGE_4','LTF_STENOSIS_1','LTF_STENOSIS_2','LTF_STENOSIS_3','LTF_STENOSIS_4','LTF_RETX_1','LTF_RETX_2','LTF_RETX_3','LTF_RETX_4','LTF_TARGLESION_1','LTF_TARGLESION_2','LTF_TARGLESION_3','LTF_TARGLESION_4','LTF_TARGLESION_SURGERY_1','LTF_TARGLESION_SURGERY_2','LTF_TARGLESION_SURGERY_3','LTF_TARGLESION_SURGERY_4','D30_ADMIT_SINCE_DISC','D30_ADMISSION_LOC','D30_ADMISSION_REASON','D30_SSI','D30_MORTCAUSE','IDE_OTHER','LTF_COVID_STATUS','COVID_STATUS_30D')
+
+ltf_logicalVars = c('LTF_SMOKING','LTF_CHANGEMEDS','LTF_RETX_THROMBOSIS_1','LTF_RETX_THROMBOSIS_2','LTF_RETX_THROMBOSIS_3','LTF_RETX_THROMBOSIS_4','D30_RETX_REOP_RELATED','D30_OTHERINF_CLABSI','D30_OTHERINF_SEPSIS','D30_OTHERINF_OTHER','D30_WOUNDCOMP_NECROSIS','D30_WOUNDCOMP_HEMATOMA','D30_WOUNDCOMP_SEROMA','D30_WOUNDCOMP_LYMPH_LEAK','D30_WOUNDCOMP_DEHISCENCE','D30_WOUNDCOMP_OTHER','D30_CARDCOMP_AMI','D30_CARDCOMP_HEART_FAILURE','D30_CARDCOMP_OTHER','D30_VASCCOMP_TREATED_ART_THROM','D30_VASCCOMP_DISTAL_ART_EMBO','D30_VASCCOMP_BLEEDING','D30_VASCCOMP_SWELLING_WO_DVT','D30_VASCCOMP_OTHER','D30_VTECOMP_DVT','D30_VTECOMP_PE','D30_VTECOMP_OTHER','D30_RESPCOMP_PNEUMONIA','D30_RESPCOMP_COPD','D30_RESPCOMP_OTHER','D30_CNSCOMP_TIA','D30_CNSCOMP_STROKE','D30_CNSCOMP_OTHER','D30_RENALCOMP_UTI','D30_RENALCOMP_UROSPESIS','D30_RENALCOMP_ACUTE_RENAL_FAIL','D30_RENALCOMP_OTHER','D30_GICOMP_INTESTINAL_ISCHEMIA','D30_GICOMP_NAUSEA_VOMITING','D30_GICOMP_DIARRHEA','D30_GICOMP_C_DIFF','D30_GICOMP_OTHER')
+
+#Correct Date formats
+pvi_ltf <- pvi_ltf %>%
+  mutate(across(contains('_DT'), ~mdy(.)))
+
+#apply data types
+pvi_ltf[ltf_numVars] <- lapply(pvi_ltf[ltf_numVars], as.numeric)
+pvi_ltf[ltf_charVars] <- lapply(pvi_ltf[ltf_charVars], as.character)
+pvi_ltf[ltf_logicalVars] <- lapply(pvi_ltf[ltf_logicalVars], as.logical)
+pvi_ltf[ltf_factorVars] <- lapply(pvi_ltf[ltf_factorVars], as.factor)
+
+################################ Recode Factors ################################ 
+pvi_ltf$factor_fwp_timepoint <- factor(pvi_ltf$FWP_TIMEPOINT, labels = c('Long Term Follow-up','30-Day Follow-up'))
+
+pvi_ltf$factor_ltf_contact <- factor(pvi_ltf$LTF_CONTACT, labels = c('Face to face','Phone','No follow-up possible','Other source'))
+
+pvi_ltf$factor_ltf_status <- factor(pvi_ltf$LTF_STATUS, labels = c('Home','Nursing home','Dead','Homeless'))
+
+pvi_ltf$factor_ltf_mortcause <- factor(pvi_ltf$LTF_MORTCAUSE, labels = c('Related to disease or treatment','Unrelated to disease or treatment','Unsure'))
+
+pvi_ltf$factor_ltf_funcstatus <- factor(pvi_ltf$LTF_FUNCSTATUS, labels = c('Full','Light work','Self care','Assisted care','Bed bound'))
+
+pvi_ltf$factor_ltf_curramb <- factor(pvi_ltf$LTF_CURRAMB, labels = c('Amb','Amb W/ Assistance','Wheelchair','Bedridden','Amb W/ Prosthesis','Amb W/ Assistance or Prosthesis (retired since 09/28/2017)'))
+
+pvi_ltf$factor_ltf_asa <- factor(pvi_ltf$LTF_ASA, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+pvi_ltf$factor_ltf_p2y <- factor(pvi_ltf$LTF_P2Y, labels = c('None','Clopidogrel','Prasugrel','Ticlopidine','Ticagrelor','Other','No, for medical reason','Non-compliant','PAR1 Inhibitor'))
+
+pvi_ltf$factor_ltf_anticoag <- factor(pvi_ltf$LTF_ANTICOAG, labels = c('None','Warfarin','Dabigatran','Rivaroxaban','Other','No, for medical reason','Non-compliant'))
+
+pvi_ltf$factor_ltf_statin <- factor(pvi_ltf$LTF_STATIN, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+pvi_ltf$factor_ltf_ace <- factor(pvi_ltf$LTF_ACE, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+pvi_ltf$factor_ltf_cilastazol <- factor(pvi_ltf$LTF_CILOSTRAZOL, labels = c('No','Yes','No, for medical reason','Non-compliant'))
+
+pvi_ltf$factor_ltf_symptoms_r <- factor(pvi_ltf$LTF_SYMPTOMS_R, labels = c('Asymptomatic','Claudication (retired since 09/28/2017)','Moderate claudication','Tissue Loss (retired since 09/28/2017)','Ischemic rest pain','Ulcer/necrosis','Non-healing amputation','Both ulcer + non-healing amp','Acute ischemia','Mild claudication','Severe claudication'))
+
+pvi_ltf$factor_ltf_symptoms_l <- factor(pvi_ltf$LTF_SYMPTOMS_L, labels = c('Asymptomatic','Claudication (retired since 09/28/2017)','Moderate claudication','Tissue Loss (retired since 09/28/2017)','Ischemic rest pain','Ulcer/necrosis','Non-healing amputation','Both ulcer + non-healing amp','Acute ischemia','Mild claudication','Severe claudication'))
+
+pvi_ltf$factor_ltf_tissueloss_r <- factor(pvi_ltf$LTF_TISSUELOSS_R, labels = c('Grade 1, Shallow','Grade 2, Deep','Grade 3, Extensive'))
+
+pvi_ltf$factor_ltf_tissueloss_l <- factor(pvi_ltf$LTF_TISSUELOSS_L, labels = c('Grade 1, Shallow','Grade 2, Deep','Grade 3, Extensive'))
+
+pvi_ltf$factor_ltf_infection_r <- factor(pvi_ltf$LTF_INFECTION_R , labels = c('Grade 0, None','Grade 1, Mild','Grade 2, Moderate','Grade 3, Severe'))
+
+pvi_ltf$factor_ltf_infection_l <- factor(pvi_ltf$LTF_INFECTION_L, labels = c('Grade 0, None','Grade 1, Mild','Grade 2, Moderate','Grade 3, Severe'))
+
+pvi_ltf$factor_ltf_amp_r <- factor(pvi_ltf$LTF_AMP_R, labels = c('No','Toe(s)','Minor Amp (retired since 09/28/2017)','BK or Thru Knee','AK or Higher','Transmet/midfoot'))
+
+pvi_ltf$factor_ltf_amp_l <- factor(pvi_ltf$LTF_AMP_L, labels = c('No','Toe(s)','Minor Amp (retired since 09/28/2017)','BK or Thru Knee','AK or Higher','Transmet/midfoot'))
+
+pvi_ltf$factor_ltf_currpatency_1 <- factor(pvi_ltf$LTF_CURRPATENCY_1, labels = c('Patent','Prim-Assisted (retired since 09/28/2017)','Secondary (retired since 09/28/2017)','Occluded','Uncertain','Primary (retired since 09/28/2017)','Not assessed'))
+
+pvi_ltf$factor_ltf_currpatency_2 <- factor(pvi_ltf$LTF_CURRPATENCY_2, labels = c('Patent','Prim-Assisted (retired since 09/28/2017)','Secondary (retired since 09/28/2017)','Occluded','Uncertain','Primary (retired since 09/28/2017)','Not assessed'))
+
+pvi_ltf$factor_ltf_currpatency_3 <- factor(pvi_ltf$LTF_CURRPATENCY_3, labels = c('Patent','Prim-Assisted (retired since 09/28/2017)','Secondary (retired since 09/28/2017)','Occluded','Uncertain','Primary (retired since 09/28/2017)','Not assessed'))
+
+pvi_ltf$factor_ltf_currpatency_4 <- factor(pvi_ltf$LTF_CURRPATENCY_4, labels = c('Patent','Prim-Assisted (retired since 09/28/2017)','Secondary (retired since 09/28/2017)','Occluded','Uncertain','Primary (retired since 09/28/2017)','Not assessed'))
+
+pvi_ltf$factor_ltf_patjudge_1 <- factor(pvi_ltf$LTF_PATJUDGE_1, labels = c('Palpable distal pulse', 'ABI increase >0.15','MRA','Duplex','CTA','Angio'))
+
+pvi_ltf$factor_ltf_patjudge_2 <- factor(pvi_ltf$LTF_PATJUDGE_2, labels = c('Palpable distal pulse', 'ABI increase >0.15','MRA','Duplex','CTA','Angio'))
+
+pvi_ltf$factor_ltf_patjudge_3 <- factor(pvi_ltf$LTF_PATJUDGE_3, labels = c('Palpable distal pulse', 'ABI increase >0.15','MRA','Duplex','CTA','Angio'))
+
+pvi_ltf$factor_ltf_patjudge_4 <- factor(pvi_ltf$LTF_PATJUDGE_4, labels = c('Palpable distal pulse', 'ABI increase >0.15','MRA','Duplex','CTA','Angio'))
+
+pvi_ltf$factor_ltf_stenosis_1 <- factor(pvi_ltf$LTF_STENOSIS_1, labels = c('< 50%','>= 50%'))
+
+pvi_ltf$factor_ltf_stenosis_2 <- factor(pvi_ltf$LTF_STENOSIS_2, labels = c('< 50%','>= 50%'))
+
+pvi_ltf$factor_ltf_stenosis_3 <- factor(pvi_ltf$LTF_STENOSIS_3, labels = c('< 50%','>= 50%'))
+
+pvi_ltf$factor_ltf_stenosis_4 <- factor(pvi_ltf$LTF_STENOSIS_4, labels = c('< 50%','>= 50%'))
+
+pvi_ltf$factor_ltf_retx_1 <- factor(pvi_ltf$LTF_RETX_1, labels = c('None','Interventional','Surgical','Both'))
+
+pvi_ltf$factor_ltf_retx_2 <- factor(pvi_ltf$LTF_RETX_2, labels = c('None','Interventional','Surgical','Both'))
+
+pvi_ltf$factor_ltf_retx_3 <- factor(pvi_ltf$LTF_RETX_3, labels = c('None','Interventional','Surgical','Both'))
+
+pvi_ltf$factor_ltf_retx_4 <- factor(pvi_ltf$LTF_RETX_4, labels = c('None','Interventional','Surgical','Both'))
+
+pvi_ltf$factor_ltf_targetlesion_1 <- factor(pvi_ltf$LTF_TARGLESION_1 , labels = c('No','Yes','Uncertain'))
+
+pvi_ltf$factor_ltf_targetlesion_2 <- factor(pvi_ltf$LTF_TARGLESION_2, labels = c('No','Yes','Uncertain'))
+
+pvi_ltf$factor_ltf_targetlesion_3 <- factor(pvi_ltf$LTF_TARGLESION_3, labels = c('No','Yes','Uncertain'))
+
+pvi_ltf$factor_ltf_targetlesion_4 <- factor(pvi_ltf$LTF_TARGLESION_4, labels = c('No','Yes','Uncertain'))
+
+pvi_ltf$factor_ltf_targetlesion_surgery_1 <- factor(pvi_ltf$LTF_TARGLESION_SURGERY_1 , labels = c('No','Yes','Uncertain'))
+
+pvi_ltf$factor_ltf_targetlesion_surgery_2 <- factor(pvi_ltf$LTF_TARGLESION_SURGERY_2, labels = c('No','Yes','Uncertain'))
+
+pvi_ltf$factor_ltf_targetlesion_surgery_3 <- factor(pvi_ltf$LTF_TARGLESION_SURGERY_3, labels = c('No','Yes','Uncertain'))
+
+pvi_ltf$factor_ltf_targetlesion_surgery_4 <- factor(pvi_ltf$LTF_TARGLESION_SURGERY_4, labels = c('No','Yes'))
+
+pvi_ltf$factor_admit_after_dc_30d <- factor(pvi_ltf$D30_ADMIT_SINCE_DISC, labels = c('No','Yes, Unplanned, related to procedure','Yes, Unplanned, unrelated to the procedure','Yes, Planned, related to procedure','Yes, Planned, unrelated to procedure'))
+
+pvi_ltf$factor_readmit_loc_30d <- factor(pvi_ltf$D30_ADMISSION_LOC, labels = c('Same site as procedure','Different site than procedure'))
+
+pvi_ltf$factor_reason_30d_admission <- factor(pvi_ltf$D30_ADMISSION_REASON, labels = c('Surgical Site Infection','Other infection','Wound complication','Cardiac complication','Vascular complication','VTE complication','Respiratory complication','CNS complication','Renal complication','GI complication','Other'))
+
+pvi_ltf$factor_ssi_30d <- factor(pvi_ltf$D30_SSI, labels = c('Superficial','Deep','Organ Space'))
+
+pvi_ltf$factor_cause_30d_mortality <- factor(pvi_ltf$D30_MORTCAUSE, labels = c('Related to disease or treatment','Unrelated to disease or treatment','Unsure'))
+
+pvi_ltf$factor_ide_other <- factor(pvi_ltf$IDE_OTHER, labels = c('No IDE or Other device','IDE Device','Other Device'))
+
+pvi_ltf$factor_ltf_COVID_STATUS<- factor(pvi_ltf$LTF_COVID_STATUS, labels = c('Never tested, no symptoms','Never tested, but had symptoms','Interval test positive with no current symptoms','Interval test positive with active symptoms','Interval test negative with no current symptoms','Interval test negative with active symptoms','Unknown'))
+
+pvi_ltf$factor_ltf_COVID_STATUS_30D<- factor(pvi_ltf$COVID_STATUS_30D, labels = c('Never tested, no symptoms','Never tested, but had symptoms','Interval test positive with no current symptoms','Interval test positive with active symptoms','Interval test negative with no current symptoms','Interval test negative with active symptoms','Unknown'))
+
+############################ Remove retired and converted variables###########
+ltf_retired <- c('LTF_R_TBIR','LTF_R_TBIL','LTF_R_BETABLOCKER')
+
+pvi_ltf <- pvi_ltf %>%
+  select(-all_of(ltf_retired))
+
+ltf_converted_factors <- c('FWP_TIMEPOINT','LTF_CONTACT','LTF_STATUS','LTF_MORTCAUSE','LTF_FUNCSTATUS','LTF_CURRAMB','LTF_ASA','LTF_P2Y','LTF_ANTICOAG','LTF_STATIN','LTF_ACE','LTF_CILOSTRAZOL','LTF_SYMPTOMS_R','LTF_SYMPTOMS_L','LTF_TISSUELOSS_R','LTF_TISSUELOSS_L','LTF_INFECTION_R','LTF_INFECTION_L','LTF_AMP_R','LTF_AMP_L','LTF_CURRPATENCY_1','LTF_CURRPATENCY_2','LTF_CURRPATENCY_3','LTF_CURRPATENCY_4','LTF_PATJUDGE_1','LTF_PATJUDGE_2','LTF_PATJUDGE_3','LTF_PATJUDGE_4','LTF_STENOSIS_1','LTF_STENOSIS_2','LTF_STENOSIS_3','LTF_STENOSIS_4','LTF_RETX_1','LTF_RETX_2','LTF_RETX_3','LTF_RETX_4','LTF_TARGLESION_1','LTF_TARGLESION_2','LTF_TARGLESION_3','LTF_TARGLESION_SURGERY_1','LTF_TARGLESION_SURGERY_2','D30_MORTCAUSE','COVID_STATUS_30D','D30_ADMIT_SINCE_DISC','D30_ADMISSION_LOC','D30_ADMISSION_REASON','D30_SSI','IDE_OTHER','LTF_COVID_STATUS')
+
+#'LTF_TARGLESION_4','LTF_TARGLESION_SURGERY_3','LTF_TARGLESION_SURGERY_4')
+
+pvi_ltf_final <- pvi_ltf %>%
+  select(-all_of(ltf_converted_factors))
+
+################################ Final Dataset ################################
+pvi_ltf_final <- pvi_ltf_final %>%
+  group_by(PRIMPROCID) %>%
+  arrange(desc(LTF_DAYS)) %>%
+  mutate(ltf_number = row_number()) %>%
+  ungroup() %>%
+  filter(ltf_number == 1)
+
+pvi_full <- left_join(pvi_proc_final, pvi_ltf_final, by = 'PRIMPROCID', suffix = c('_proc', '_ltf'))
+
+write_rds(pvi_full, 'output/pvi_full.rds')
+
+rm(list = ls())
